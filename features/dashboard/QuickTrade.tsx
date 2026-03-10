@@ -1,5 +1,5 @@
-// features/dashboard/QuickTrade.tsx
-("use client");
+//features/dashboard/QuickTrade.tsx
+"use client"
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
