@@ -3,8 +3,9 @@ import { createMockStream } from '@/mocks/sentinel.mock';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   const encoder = new TextEncoder();
   
   const stream = new ReadableStream({
