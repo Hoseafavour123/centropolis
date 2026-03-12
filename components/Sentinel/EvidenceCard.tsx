@@ -3,7 +3,7 @@
 import { EvidenceItem } from '@/types/sentinel';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Database, Users, MessageSquare, FileText } from 'lucide-react';
+import { Database, Users, MessageSquare, FileText, ShieldCheck } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface EvidenceCardProps {
@@ -16,6 +16,7 @@ const typeIcons = {
   holder: Users,
   social: MessageSquare,
   tx: FileText,
+  rug: ShieldCheck, // Add this
 };
 
 const typeColors = {
@@ -23,6 +24,7 @@ const typeColors = {
   holder: 'bg-purple-500/10 text-purple-500',
   social: 'bg-green-500/10 text-green-500',
   tx: 'bg-orange-500/10 text-orange-500',
+  rug: 'bg-green-500/10 text-green-500 border-green-500/30', // Add this
 };
 
 export function EvidenceCard({ evidence, onOpenDetail }: EvidenceCardProps) {

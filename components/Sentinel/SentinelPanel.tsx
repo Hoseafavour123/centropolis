@@ -2,16 +2,18 @@
 
 import { SentinelResult } from '@/types/sentinel';
 import { SafetyScoreBadge } from './SafetyScoreBadge';
+import { RugDetectionPanel } from './RugDetectionPanel';
+import { RecommendationPanel } from './RecommendationPanel';
 import { EvidenceCard } from './EvidenceCard';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Loader2, Terminal } from 'lucide-react';
+import { Loader2, Terminal, Activity } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface SentinelPanelProps {
   analysis?: SentinelResult | null;
   streamingText?: string;
   status: 'idle' | 'streaming' | 'ready' | 'failed';
-  onOpenTrade: (prefill: { chain: string; token?: string }) => void;
+  onOpenTrade: () => void;
   onSaveReport: (id: string) => void;
   onExplain: () => void;
 }
@@ -27,9 +29,16 @@ export function SentinelPanel({
   if (status === 'idle') {
     return (
       <div className="h-[600px] flex items-center justify-center text-muted-foreground border border-dashed border-border rounded-xl">
-        <div className="text-center space-y-2">
-          <Terminal className="w-12 h-12 mx-auto opacity-20" />
-          <p>Enter an address to begin AI analysis</p>
+        <div className="text-center space-y-4">
+          <div className="w-16 h-16 mx-auto rounded-full bg-muted flex items-center justify-center">
+            <Activity className="w-8 h-8 opacity-40" />
+          </div>
+          <div>
+            <p className="text-lg font-medium">Ready to Analyze</p>
+            <p className="text-sm text-muted-foreground max-w-xs">
+              Enter a token, wallet, or transaction address to begin AI-powered security analysis
+            </p>
+          </div>
         </div>
       </div>
     );
@@ -45,7 +54,12 @@ export function SentinelPanel({
         <div>
           <h1 className="text-2xl font-bold mb-2">Sentinel Deep Analysis</h1>
           <p className="text-sm text-muted-foreground">
-            {isLoading ? 'Streaming analysis...' : `Analyzed ${displayData ? new Date(displayData.createdAt).toLocaleString() : ''}`}
+            {isLoading 
+              ? 'Streaming real-time analysis...' 
+              : displayData 
+                ? `Completed ${new Date(displayData.createdAt).toLocaleString()}`
+                : 'Processing...'
+            }
           </p>
         </div>
         {displayData && (
@@ -55,49 +69,80 @@ export function SentinelPanel({
 
       {/* Streaming Output */}
       {(isLoading || streamingText) && (
-        <Card className="bg-black/50 border-border/50 font-mono text-sm">
+        <Card className="bg-black/50 border-border/50 font-mono text-sm overflow-hidden">
           <CardContent className="p-4">
-            <div className="flex items-center gap-2 mb-2 text-primary">
+            <div className="flex items-center gap-2 mb-3 text-primary border-b border-border/30 pb-2">
               <Loader2 className={cn("w-4 h-4", isLoading && "animate-spin")} />
-              <span className="text-xs uppercase tracking-wider">AI Stream</span>
+              <span className="text-xs uppercase tracking-wider font-semibold">AI Analysis Stream</span>
+              {isLoading && (
+                <span className="text-xs text-muted-foreground ml-auto animate-pulse">
+                  Live
+                </span>
+              )}
             </div>
-            <div className="whitespace-pre-wrap text-muted-foreground max-h-48 overflow-y-auto">
+            <div className="whitespace-pre-wrap text-muted-foreground max-h-64 overflow-y-auto leading-relaxed">
               {streamingText}
-              {isLoading && <span className="animate-pulse">▊</span>}
+              {isLoading && <span className="animate-pulse text-primary">▊</span>}
             </div>
           </CardContent>
         </Card>
       )}
 
-      {/* Structured Findings */}
-      {displayData && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Liquidity</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">${(displayData.metrics.liquidityDepth / 1e6).toFixed(0)}M</div>
-              <p className="text-xs text-green-400 mt-1">+127% 24h Volume</p>
-            </CardContent>
-          </Card>
+      {/* Rug Detection Panel */}
+      {displayData?.rugDetection && (
+        <RugDetectionPanel rugDetection={displayData.rugDetection} />
+      )}
 
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Holder Concentration</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{displayData.metrics.topHoldersPercent}%</div>
-              <p className="text-xs text-amber-400 mt-1">Top 20 wallets (Moderate Risk)</p>
-            </CardContent>
-          </Card>
+      {/* AI Recommendation */}
+      {displayData?.recommendation && (
+        <RecommendationPanel 
+          recommendation={displayData.recommendation}
+          onOpenTrade={onOpenTrade}
+        />
+      )}
+
+      {/* Structured Metrics */}
+      {displayData && (
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <MetricCard 
+            label="Liquidity" 
+            value={`$${(displayData.metrics.liquidityDepth / 1e6).toFixed(0)}M`}
+            change="+127%"
+            positive
+          />
+          <MetricCard 
+            label="Top 20 Holders" 
+            value={`${displayData.metrics.topHoldersPercent}%`}
+            change="Moderate"
+            warning
+          />
+          <MetricCard 
+            label="Smart Buys" 
+            value={displayData.metrics.recentSmartBuys.toString()}
+            change="+12%"
+            positive
+          />
+          <MetricCard 
+            label="Volatility" 
+            value={(displayData.metrics.volatilityIndex * 100).toFixed(1) + '%'}
+            change="Normal"
+            neutral
+          />
         </div>
       )}
 
       {/* Evidence Grid */}
       {displayData?.evidence && (
         <div className="space-y-3">
-          <h3 className="font-semibold text-sm">Evidence & Signals</h3>
+          <div className="flex items-center justify-between">
+            <h3 className="font-semibold">Evidence & Signals</h3>
+            <button 
+              onClick={onExplain}
+              className="text-xs text-primary hover:underline"
+            >
+              View Explainability
+            </button>
+          </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             {displayData.evidence.map((item) => (
               <EvidenceCard key={item.id} evidence={item} />
@@ -106,5 +151,37 @@ export function SentinelPanel({
         </div>
       )}
     </div>
+  );
+}
+
+// Helper component for metrics
+function MetricCard({ 
+  label, 
+  value, 
+  change, 
+  positive, 
+  warning, 
+  neutral 
+}: { 
+  label: string; 
+  value: string; 
+  change: string;
+  positive?: boolean;
+  warning?: boolean;
+  neutral?: boolean;
+}) {
+  return (
+    <Card className="p-4">
+      <div className="text-xs text-muted-foreground mb-1">{label}</div>
+      <div className="text-xl font-bold font-mono">{value}</div>
+      <div className={cn(
+        "text-xs mt-1",
+        positive && "text-green-500",
+        warning && "text-yellow-500",
+        neutral && "text-muted-foreground"
+      )}>
+        {change}
+      </div>
+    </Card>
   );
 }

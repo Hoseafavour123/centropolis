@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useCallback, useRef, useEffect } from 'react';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useState, useCallback, useRef } from 'react';
+import { useQueryClient, useQuery } from '@tanstack/react-query';
 import { 
   SentinelAnalyzeRequest, 
   SentinelAnalyzeStart, 
@@ -9,7 +9,7 @@ import {
   SentinelResult 
 } from '@/types/sentinel';
 import { useAnalytics } from './useAnalytics';
-import { mockSentinelResult } from '@/mocks/sentinel.mock';
+import { mockSentinelResult } from '@/mocks/sentinel.mock';  // Import mock
 
 const API_BASE = '/api/sentinel';
 
@@ -19,25 +19,38 @@ export function useSentinelAnalyze() {
   const [streamingText, setStreamingText] = useState('');
   const [status, setStatus] = useState<'idle' | 'streaming' | 'ready' | 'failed'>('idle');
   const abortControllerRef = useRef<AbortController | null>(null);
+  const accumulatedTextRef = useRef('');  // Use ref for reliable accumulation
 
   const startAnalysis = useCallback(async (req: SentinelAnalyzeRequest): Promise<SentinelAnalyzeStart> => {
     track('sentinel_analysis_requested', { entityType: req.entityType, chain: req.chain, depth: req.depth });
+    
+    // Reset state
     setStreamingText('');
+    accumulatedTextRef.current = '';
     setStatus('idle');
 
-    const res = await fetch(`${API_BASE}/analyze`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(req),
-    });
+    try {
+      const res = await fetch(`${API_BASE}/analyze`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(req),
+      });
 
-    if (!res.ok) throw new Error('Failed to start analysis');
-    return res.json();
+      if (!res.ok) {
+        throw new Error(`Failed to start analysis: ${res.status}`);
+      }
+
+      const data = await res.json();
+      return data as SentinelAnalyzeStart;
+    } catch (error) {
+      setStatus('failed');
+      throw error;
+    }
   }, [track]);
 
   const subscribeToStream = useCallback((analysisId: string, onComplete?: (result: SentinelResult) => void) => {
     setStatus('streaming');
-    let accumulatedText = '';
+    accumulatedTextRef.current = '';
     
     // Try SSE first
     if (typeof EventSource !== 'undefined') {
@@ -46,40 +59,81 @@ export function useSentinelAnalyze() {
       es.onmessage = (event) => {
         try {
           const msg: SSEMessage = JSON.parse(event.data);
-          handleStreamMessage(msg, accumulatedText, setStreamingText, (text) => { accumulatedText = text; });
           
-          if (msg.type === 'done') {
+          if (msg.type === 'chunk') {
+            // Append to accumulated text
+            accumulatedTextRef.current += msg.payload.text;
+            setStreamingText(accumulatedTextRef.current);
+            track('sentinel_stream_chunk', { analysisId, chunkLength: msg.payload.text.length });
+          }
+          
+          else if (msg.type === 'meta') {
+            // Store metadata if needed
+            console.log('Stream metadata:', msg.payload);
+          }
+          
+          else if (msg.type === 'done') {
+            // Construct final result
             const finalResult: SentinelResult = {
-              ...mockSentinelResult, // In real app, construct from msg.payload
               analysisId,
-              streamingText: accumulatedText,
+              summary: msg.payload.summary,
+              finalScore: msg.payload.finalScore,
+              safetyBand: getSafetyBand(msg.payload.finalScore),
+              metrics: msg.payload.metrics,
+              rugDetection: msg.payload.rugDetection, // Add this
+              recommendation: msg.payload.recommendation, // Add this
+              evidence: msg.payload.evidence,
+              dataSources: [], // Would come from meta
+              createdAt: new Date().toISOString(),
+              streamingText: accumulatedTextRef.current,
             };
+            
             setStatus('ready');
             queryClient.setQueryData(['sentinel', analysisId], finalResult);
             track('sentinel_analysis_complete', { analysisId, finalScore: finalResult.finalScore });
+            
             onComplete?.(finalResult);
             es.close();
           }
           
-          if (msg.type === 'error') {
+          else if (msg.type === 'error') {
             setStatus('failed');
             es.close();
           }
         } catch (e) {
-          console.error('Stream parse error', e);
+          console.error('Stream parse error:', e);
         }
       };
 
-      es.onerror = () => {
-        // Fallback to polling
+      es.onerror = (error) => {
+        console.log('SSE error, falling back to polling:', error);
         es.close();
-        pollForResult(analysisId, setStatus, setStreamingText, queryClient, track, onComplete);
+        // Fallback to polling
+        pollForResult(
+          analysisId, 
+          setStatus, 
+          setStreamingText, 
+          accumulatedTextRef,
+          queryClient, 
+          track, 
+          onComplete
+        );
       };
 
-      return () => es.close();
+      return () => {
+        es.close();
+      };
     } else {
-      // No SSE support, go straight to polling
-      return pollForResult(analysisId, setStatus, setStreamingText, queryClient, track, onComplete);
+      // No SSE support, use polling
+      return pollForResult(
+        analysisId, 
+        setStatus, 
+        setStreamingText, 
+        accumulatedTextRef,
+        queryClient, 
+        track, 
+        onComplete
+      );
     }
   }, [queryClient, track]);
 
@@ -92,56 +146,77 @@ export function useSentinelAnalyze() {
     });
   }, []);
 
-  return { startAnalysis, subscribeToStream, getResult, streamingText, status };
+  return { 
+    startAnalysis, 
+    subscribeToStream, 
+    getResult, 
+    streamingText, 
+    status,
+    analysisId: null as string | null, // Expose if needed
+  };
 }
 
-// Helper to handle individual messages
-function handleStreamMessage(
-  msg: SSEMessage, 
-  accumulated: string, 
-  setText: (t: string) => void,
-  setAccumulated: (t: string) => void
-) {
-  if (msg.type === 'chunk') {
-    const newText = accumulated + msg.payload.text;
-    setAccumulated(newText);
-    setText(newText);
-  }
+// Helper to determine safety band
+function getSafetyBand(score: number): 'safe' | 'caution' | 'danger' {
+  if (score >= 70) return 'safe';
+  if (score >= 40) return 'caution';
+  return 'danger';
 }
 
-// Polling Fallback
+// Polling fallback implementation
 function pollForResult(
   analysisId: string,
   setStatus: (s: any) => void,
   setStreamingText: (t: string) => void,
+  textRef: React.MutableRefObject<string>,
   queryClient: any,
   track: any,
   onComplete?: (r: SentinelResult) => void
 ) {
   let attempts = 0;
   const maxAttempts = 40;
+  
   const interval = setInterval(async () => {
     attempts++;
+    
     try {
       const res = await fetch(`/api/sentinel/result/${analysisId}`);
+      
       if (res.ok) {
         const data: SentinelResult = await res.json();
+        
         clearInterval(interval);
+        
+        // Update text if we have streaming text
+        if (data.streamingText) {
+          setStreamingText(data.streamingText);
+        } else {
+          setStreamingText(data.summary);
+        }
+        
         setStatus('ready');
-        setStreamingText(data.summary);
         queryClient.setQueryData(['sentinel', analysisId], data);
-        track('sentinel_analysis_complete', { analysisId, finalScore: data.finalScore, method: 'polling' });
+        track('sentinel_analysis_complete', { 
+          analysisId, 
+          finalScore: data.finalScore,
+          method: 'polling' 
+        });
+        
         onComplete?.(data);
+        return;
       }
     } catch (e) {
-      // Continue polling
+      // Continue polling on network errors
+      console.log(`Poll attempt ${attempts} failed, retrying...`);
     }
     
     if (attempts >= maxAttempts) {
       clearInterval(interval);
       setStatus('failed');
+      console.error('Polling timeout after 120 seconds');
     }
   }, 3000);
   
+  // Return cleanup function
   return () => clearInterval(interval);
 }
