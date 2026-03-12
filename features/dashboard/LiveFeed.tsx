@@ -2,7 +2,7 @@
 "use client"
 
 import { useQuery } from "@tanstack/react-query";
-import { api } from "@/lib/api/mockData";
+import { api } from "@/mocks/dashboard.mock";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Activity, Wallet, AlertTriangle, TrendingUp } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";

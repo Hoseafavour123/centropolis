@@ -3,7 +3,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { BrainCircuit, TrendingUp, Shield } from "lucide-react";
-import { MOCK_AI_INSIGHT } from "@/lib/api/mockData";
+import { MOCK_AI_INSIGHT } from "@/mocks/dashboard.mock";
 
 export function SentinelCard() {
   const insight = MOCK_AI_INSIGHT;

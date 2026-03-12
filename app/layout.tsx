@@ -5,6 +5,7 @@ import { Navbar } from "@/components/layout/Navbar";
 import { Sidebar } from "@/components/layout/Sidebar"
 import { Providers } from "@/components/providers/Providers"; // React Query Provider
 import { ThemeProvider } from "@/components/providers/theme-provider";
+import { Toaster } from "@/components/ui/toast/toaster"
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -47,6 +48,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             </div>
           </Providers>
         </ThemeProvider>
+        <Toaster />
       </body>
     </html>
   );

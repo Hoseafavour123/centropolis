@@ -1,7 +1,7 @@
 "use client"
 
 import { useQuery } from "@tanstack/react-query";
-import { api } from "@/lib/api/mockData";
+import { api } from "@/mocks/dashboard.mock";
 import { Card, CardContent } from "@/components/ui/card";
 import { Token } from "@/lib/types";
 import Image from "next/image";
