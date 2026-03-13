@@ -115,9 +115,9 @@ function generateRandomContent(sentiment: string, address: string): string {
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { chain: string; address: string } }
+  { params }: { params: Promise<{ chain: string; address: string }> }
 ) {
-  const { address } = params;
+  const { address } = await params;
 
   // Simulate network delay
   await new Promise(r => setTimeout(r, 200 + Math.random() * 300));

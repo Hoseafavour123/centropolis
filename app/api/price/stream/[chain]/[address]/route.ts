@@ -4,9 +4,9 @@ import { PricePoint } from '@/types/token';
 // Server-Sent Events for real-time price streaming
 export async function GET(
   request: NextRequest,
-  { params }: { params: { chain: string; address: string } }
+  { params }: { params: Promise<{ chain: string; address: string }> }
 ) {
-  const { address } = params;
+  const { address } = await params;
   
   const basePrice = address.includes('So1111') ? 136.82 : 
                     address.includes('EPjFW') ? 1.00 : 
