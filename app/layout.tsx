@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import { Inter, Geist } from "next/font/google";
 import "./globals.css";
-import { Navbar } from "@/components/layout/Navbar";
-import { Sidebar } from "@/components/layout/Sidebar"
+import { Navbar } from "@/components/Shared/Navbar";
+import { Sidebar } from "@/components/Shared/Sidebar"
 import { Providers } from "@/components/providers/Providers"; // React Query Provider
 import { ThemeProvider } from "@/components/providers/theme-provider";
 import { Toaster } from "@/components/ui/toast/toaster"
@@ -56,7 +56,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 
 // Helper to avoid import issues in the single file representation
 // In a real app, this would be a direct import in layout.tsx
-import { RightPanel } from "@/components/layout/RightPanel";
+import { RightPanel } from "@/components/Shared/RightPanel";
 import { cn } from "@/lib/utils";
 
 const geist = Geist({ subsets: ['latin'], variable: '--font-sans' });

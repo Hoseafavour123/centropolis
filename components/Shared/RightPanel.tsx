@@ -1,4 +1,3 @@
-// components/layout/RightPanel.tsx
 "use client"
 
 import { QuickTrade } from "@/features/dashboard/QuickTrade";

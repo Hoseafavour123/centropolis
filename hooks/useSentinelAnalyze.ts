@@ -10,19 +10,20 @@ import {
 } from '@/types/sentinel';
 import { useAnalytics } from './useAnalytics';
 import { mockSentinelResult } from '@/mocks/sentinel.mock';  // Import mock
+import { send } from 'process';
 
 const API_BASE = '/api/sentinel';
 
 export function useSentinelAnalyze() {
   const queryClient = useQueryClient();
-  const { track } = useAnalytics();
+  const { sendAnalytics } = useAnalytics();
   const [streamingText, setStreamingText] = useState('');
   const [status, setStatus] = useState<'idle' | 'streaming' | 'ready' | 'failed'>('idle');
   const abortControllerRef = useRef<AbortController | null>(null);
   const accumulatedTextRef = useRef('');  // Use ref for reliable accumulation
 
   const startAnalysis = useCallback(async (req: SentinelAnalyzeRequest): Promise<SentinelAnalyzeStart> => {
-    track('sentinel_analysis_requested', { entityType: req.entityType, chain: req.chain, depth: req.depth });
+    sendAnalytics('sentinel_analysis_requested', { entityType: req.entityType, chain: req.chain, depth: req.depth });
     
     // Reset state
     setStreamingText('');
@@ -46,7 +47,7 @@ export function useSentinelAnalyze() {
       setStatus('failed');
       throw error;
     }
-  }, [track]);
+  }, [sendAnalytics])
 
   const subscribeToStream = useCallback((analysisId: string, onComplete?: (result: SentinelResult) => void) => {
     setStatus('streaming');
@@ -64,7 +65,7 @@ export function useSentinelAnalyze() {
             // Append to accumulated text
             accumulatedTextRef.current += msg.payload.text;
             setStreamingText(accumulatedTextRef.current);
-            track('sentinel_stream_chunk', { analysisId, chunkLength: msg.payload.text.length });
+            sendAnalytics('sentinel_stream_chunk', { analysisId, chunkLength: msg.payload.text.length });
           }
           
           else if (msg.type === 'meta') {
@@ -90,7 +91,7 @@ export function useSentinelAnalyze() {
             
             setStatus('ready');
             queryClient.setQueryData(['sentinel', analysisId], finalResult);
-            track('sentinel_analysis_complete', { analysisId, finalScore: finalResult.finalScore });
+            sendAnalytics('sentinel_analysis_complete', { analysisId, finalScore: finalResult.finalScore });
             
             onComplete?.(finalResult);
             es.close();
@@ -115,7 +116,7 @@ export function useSentinelAnalyze() {
           setStreamingText, 
           accumulatedTextRef,
           queryClient, 
-          track, 
+          sendAnalytics, 
           onComplete
         );
       };
@@ -131,11 +132,11 @@ export function useSentinelAnalyze() {
         setStreamingText, 
         accumulatedTextRef,
         queryClient, 
-        track, 
+        sendAnalytics, 
         onComplete
       );
     }
-  }, [queryClient, track]);
+  }, [queryClient, sendAnalytics]);
 
   const getResult = useCallback((analysisId: string) => {
     return useQuery<SentinelResult>({

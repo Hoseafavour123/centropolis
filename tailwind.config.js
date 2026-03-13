@@ -19,6 +19,20 @@ module.exports = {
     },
     extend: {
       colors: {
+         // Safety score colors
+        safety: {
+          safe: '#22c55e',
+          caution: '#eab308',
+          danger: '#ef4444',
+        },
+         // Provider brand colors
+        provider: {
+          jupiter: '#ec4899',
+          orca: '#06b6d4',
+          raydium: '#3b82f6',
+          meteora: '#8b5cf6',
+          jito: '#22c55e',
+        },
         border: "oklch(var(--border) / <alpha-value>)",
         input: "oklch(var(--input) / <alpha-value>)",
         ring: "oklch(var(--ring) / <alpha-value>)",
