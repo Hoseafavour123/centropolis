@@ -1,3 +1,4 @@
+import { ClerkProvider } from "@clerk/nextjs";
 import type { Metadata } from "next";
 import { Inter, Geist } from "next/font/google";
 import "./globals.css";
@@ -16,41 +17,43 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" suppressHydrationWarning className={cn("font-sans", geist.variable)}>
-      <body className={inter.className}>
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="dark"
-          enableSystem
-          disableTransitionOnChange
-        >
-          <Providers>
-            <div className="min-h-screen bg-background text-foreground">
-              <Navbar />
-              <Sidebar />
-              <main className="lg:pl-64 pt-16">
-                <div className="container p-4 lg:p-8">
-                  <div className="grid grid-cols-1 xl:grid-cols-12 gap-6">
-                    {/* Main Content Area (Left + Center) */}
-                    <div className="xl:col-span-9 space-y-6">
-                      {children}
-                    </div>
-                    {/* Right Action Panel */}
-                    <div className="xl:col-span-3">
-                      <div className="sticky top-24">
-                        {/* Import RightPanel dynamically if it gets heavy, but for now static import is fine */}
-                        <RightPanelImport />
+    <ClerkProvider>
+      <html lang="en" suppressHydrationWarning className={cn("font-sans", geist.variable)}>
+        <body className={inter.className} suppressHydrationWarning>
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="dark"
+            enableSystem
+            disableTransitionOnChange
+          >
+            <Providers>
+              <div className="min-h-screen bg-background text-foreground">
+                <Navbar />
+                <Sidebar />
+                <main className="lg:pl-64 pt-16">
+                  <div className="container p-4 lg:p-8">
+                    <div className="grid grid-cols-1 xl:grid-cols-12 gap-6">
+                      {/* Main Content Area (Left + Center) */}
+                      <div className="xl:col-span-9 space-y-6">
+                        {children}
+                      </div>
+                      {/* Right Action Panel */}
+                      <div className="xl:col-span-3">
+                        <div className="sticky top-24">
+                          {/* Import RightPanel dynamically if it gets heavy, but for now static import is fine */}
+                          <RightPanelImport />
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
-              </main>
-            </div>
-          </Providers>
-        </ThemeProvider>
-        <Toaster />
-      </body>
-    </html>
+                </main>
+              </div>
+            </Providers>
+          </ThemeProvider>
+          <Toaster />
+        </body>
+      </html>
+    </ClerkProvider>
   );
 }
 

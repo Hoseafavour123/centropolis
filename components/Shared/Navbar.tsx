@@ -1,13 +1,18 @@
-// components/layout/Navbar.tsx
 "use client";
 
 import { useGlobalStore } from "@/lib/store/globalStore";
 import { Search, Bell, Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { UserButton } from "@clerk/nextjs";
+import { useCurrentUser } from "@/hooks/useCurrentUser";
+import Link from "next/link";
+import { useWalletStore } from "@/store/useWalletStore";
+import { WalletConnectButton } from "@/components/wallet/WalletConnectButton";
 
 export function Navbar() {
-  const { toggleSidebar, walletAddress, connect, disconnect, isConnected } =
-    useGlobalStore();
+  const { toggleSidebar } = useGlobalStore();
+  const { walletAddress, chain, isConnected } = useWalletStore();
+  const { user } = useCurrentUser();
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -45,7 +50,7 @@ export function Navbar() {
         <div className="flex items-center gap-4">
           <div className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-full bg-muted text-sm font-medium">
             <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-            Solana
+            {chain}
           </div>
 
           <button className="relative p-2 text-muted-foreground hover:text-foreground transition-colors">
@@ -53,20 +58,13 @@ export function Navbar() {
             <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full border-2 border-background" />
           </button>
 
-          {isConnected ? (
-            <Button
-              variant="outline"
-              onClick={disconnect}
-              className="font-mono"
-            >
-              {walletAddress?.slice(0, 4)}...{walletAddress?.slice(-4)}
-            </Button>
+          <WalletConnectButton />
+
+          {user ? (
+            <UserButton />
           ) : (
-            <Button
-              onClick={() => connect("7x9vB2mN...4pQ")}
-              className="bg-primary hover:bg-primary/90"
-            >
-              Connect Wallet
+            <Button asChild className="bg-primary hover:bg-primary/90">
+              <Link href="/sign-in">Sign In</Link>
             </Button>
           )}
         </div>
