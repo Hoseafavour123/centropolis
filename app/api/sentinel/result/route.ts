@@ -1,4 +1,4 @@
-// redundant here for testing
+// app/api/sentinel/result/route.ts
 
 import { NextRequest, NextResponse } from 'next/server';
 import { AISummary } from '@/types/token';

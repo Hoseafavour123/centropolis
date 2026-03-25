@@ -1,3 +1,5 @@
+// /components/Sentinel/RugDetectionPanel.tsx
+
 'use client';
 
 import { RugDetectionResult } from '@/types/sentinel';

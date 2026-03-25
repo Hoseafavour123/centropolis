@@ -1,9 +1,11 @@
 'use client';
 
+import { SentinelResult } from '@/types/sentinel';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Download, Share, ExternalLink, Save, AlertTriangle } from 'lucide-react';
+import { Download, Share2, Save, Check, Copy, AlertTriangle, ExternalLink } from 'lucide-react';
 import { useState } from 'react';
+import { useToast } from '@/hooks/use-toast';
 import {
   Dialog,
   DialogContent,
@@ -14,100 +16,130 @@ import {
 } from '@/components/ui/dialog';
 
 interface ActionsPanelProps {
-  analysisId?: string;
-  safetyScore?: number;
+  analysis: SentinelResult;
   onOpenTrade: () => void;
-  onSave: () => void;
-  onShare: () => void;
-  onDownload: () => void;
+  onSave?: (id: string) => void;
 }
 
-export function ActionsPanel({ 
-  analysisId, 
-  safetyScore = 0, 
-  onOpenTrade, 
-  onSave, 
-  onShare, 
-  onDownload 
-}: ActionsPanelProps) {
+export function ActionsPanel({ analysis, onOpenTrade, onSave }: ActionsPanelProps) {
+  const { toast } = useToast();
+  const [isCopied, setIsCopied] = useState(false);
   const [showRiskModal, setShowRiskModal] = useState(false);
-  
+
+  const handleDownload = () => {
+    try {
+      const dataStr = JSON.stringify(analysis, null, 2);
+      const dataBlob = new Blob([dataStr], { type: 'application/json' });
+      const url = URL.createObjectURL(dataBlob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `sentinel-report-${analysis.analysisId}.json`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      toast({
+        title: "Success",
+        description: "Report exported to JSON",
+      });
+    } catch (err) {
+      toast({
+        title: "Error",
+        description: "Failed to export report",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleShare = async () => {
+    const url = `${window.location.origin}/sentinel?id=${analysis.analysisId}`;
+    try {
+      await navigator.clipboard.writeText(url);
+      setIsCopied(true);
+      toast({
+        title: "Link Copied",
+        description: "Analysis link copied to clipboard",
+      });
+      setTimeout(() => setIsCopied(false), 2000);
+    } catch (err) {
+      toast({
+        title: "Error",
+        description: "Failed to copy link",
+        variant: "destructive",
+      });
+    }
+  };
+
   const handleTradeClick = () => {
-    if (safetyScore < 40) {
+    if (analysis.finalScore < 40) {
       setShowRiskModal(true);
     } else {
       onOpenTrade();
     }
   };
 
-  const confirmRiskyTrade = () => {
-    setShowRiskModal(false);
-    onOpenTrade();
-  };
-
   return (
-    <>
-      <div className="space-y-4">
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium">Actions</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-2">
-            <Button variant="outline" className="w-full justify-start gap-2" onClick={onSave}>
-              <Save className="w-4 h-4" /> Save Report
-            </Button>
-            <Button variant="outline" className="w-full justify-start gap-2" onClick={onShare}>
-              <Share className="w-4 h-4" /> Share
-            </Button>
-            <Button variant="outline" className="w-full justify-start gap-2" onClick={onDownload}>
-              <Download className="w-4 h-4" /> Download JSON
-            </Button>
-          </CardContent>
-        </Card>
-
-        <Button 
-          className="w-full h-12 bg-primary hover:bg-primary/90 text-lg font-semibold"
-          onClick={handleTradeClick}
-          disabled={!analysisId}
-        >
-          <ExternalLink className="w-4 h-4 mr-2" /> Open Trade
-        </Button>
-
-        {safetyScore > 0 && (
-          <div className="p-3 rounded-lg bg-muted text-xs text-muted-foreground space-y-1">
-            <div className="flex justify-between">
-              <span>Data Sources:</span>
-              <span className="text-foreground">3 active</span>
-            </div>
-            <div className="flex justify-between">
-              <span>Block Height:</span>
-              <span className="font-mono">236,204,371</span>
-            </div>
+    <div className="space-y-4">
+      <Card className="bg-card/30 border-border/50">
+        <CardContent className="p-4 flex flex-wrap items-center justify-between gap-4">
+          <div className="flex flex-col gap-0.5">
+            <h4 className="text-sm font-semibold">Security Report</h4>
+            <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-mono">ID: {analysis.analysisId}</p>
           </div>
-        )}
-      </div>
+
+          <div className="flex items-center gap-2">
+            <Button variant="outline" size="sm" onClick={handleDownload} className="h-8 gap-1.5 text-xs">
+              <Download className="w-3.5 h-3.5" />
+              <span>Export</span>
+            </Button>
+
+            <Button variant="outline" size="sm" onClick={handleShare} className="h-8 gap-1.5 text-xs">
+              {isCopied ? <Check className="w-3.5 h-3.5 text-green-500" /> : <Share2 className="w-3.5 h-3.5" />}
+              <span>Share</span>
+            </Button>
+
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => onSave?.(analysis.analysisId)}
+              className="h-8 gap-1.5 text-xs"
+            >
+              <Save className="w-3.5 h-3.5" />
+              <span>Save</span>
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Button
+        className="w-full h-11 bg-primary hover:bg-primary/90 text-primary-foreground font-bold shadow-lg shadow-primary/20"
+        onClick={handleTradeClick}
+      >
+        <ExternalLink className="w-4 h-4 mr-2" />
+        Open Quick Trade
+      </Button>
 
       {/* Risk Warning Modal */}
       <Dialog open={showRiskModal} onOpenChange={setShowRiskModal}>
-        <DialogContent>
+        <DialogContent className="border-destructive/20 bg-destructive/5 backdrop-blur-xl">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-destructive">
               <AlertTriangle className="w-5 h-5" />
               High Risk Warning
             </DialogTitle>
-            <DialogDescription>
-              This asset has a safety score of {safetyScore}/100, indicating significant risk 
-              factors such as low liquidity or high concentration. Are you sure you want to proceed?
+            <DialogDescription className="text-muted-foreground pt-2">
+              This asset has a critical safety score of <span className="text-destructive font-bold">{analysis.finalScore}/100</span>.
+              Trading low-security tokens often results in permanent capital loss due to rug pulls or blacklists.
             </DialogDescription>
           </DialogHeader>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowRiskModal(false)}>Cancel</Button>
-            <Button variant="destructive" onClick={confirmRiskyTrade}>
-              I Understand, Proceed
+          <DialogFooter className="mt-4 gap-2">
+            <Button variant="outline" onClick={() => setShowRiskModal(false)} className="border-border/50">Cancel</Button>
+            <Button variant="destructive" onClick={() => { setShowRiskModal(false); onOpenTrade(); }}>
+              Proceed at own risk
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </>
+    </div>
   );
 }

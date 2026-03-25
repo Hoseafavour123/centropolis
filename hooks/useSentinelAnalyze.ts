@@ -1,16 +1,16 @@
+// hooks/useSentinelAnalyze.ts
+
 'use client';
 
 import { useState, useCallback, useRef } from 'react';
 import { useQueryClient, useQuery } from '@tanstack/react-query';
-import { 
-  SentinelAnalyzeRequest, 
-  SentinelAnalyzeStart, 
-  SSEMessage, 
-  SentinelResult 
+import {
+  SentinelAnalyzeRequest,
+  SentinelAnalyzeStart,
+  SSEMessage,
+  SentinelResult
 } from '@/types/sentinel';
 import { useAnalytics } from './useAnalytics';
-import { mockSentinelResult } from '@/mocks/sentinel.mock';  // Import mock
-import { send } from 'process';
 
 const API_BASE = '/api/sentinel';
 
@@ -24,7 +24,7 @@ export function useSentinelAnalyze() {
 
   const startAnalysis = useCallback(async (req: SentinelAnalyzeRequest): Promise<SentinelAnalyzeStart> => {
     sendAnalytics('sentinel_analysis_requested', { entityType: req.entityType, chain: req.chain, depth: req.depth });
-    
+
     // Reset state
     setStreamingText('');
     accumulatedTextRef.current = '';
@@ -52,27 +52,27 @@ export function useSentinelAnalyze() {
   const subscribeToStream = useCallback((analysisId: string, onComplete?: (result: SentinelResult) => void) => {
     setStatus('streaming');
     accumulatedTextRef.current = '';
-    
+
     // Try SSE first
     if (typeof EventSource !== 'undefined') {
       const es = new EventSource(`${API_BASE}/stream/${analysisId}`);
-      
+
       es.onmessage = (event) => {
         try {
           const msg: SSEMessage = JSON.parse(event.data);
-          
+
           if (msg.type === 'chunk') {
             // Append to accumulated text
             accumulatedTextRef.current += msg.payload.text;
             setStreamingText(accumulatedTextRef.current);
             sendAnalytics('sentinel_stream_chunk', { analysisId, chunkLength: msg.payload.text.length });
           }
-          
+
           else if (msg.type === 'meta') {
             // Store metadata if needed
             console.log('Stream metadata:', msg.payload);
           }
-          
+
           else if (msg.type === 'done') {
             // Construct final result
             const finalResult: SentinelResult = {
@@ -82,21 +82,22 @@ export function useSentinelAnalyze() {
               safetyBand: getSafetyBand(msg.payload.finalScore),
               metrics: msg.payload.metrics,
               rugDetection: msg.payload.rugDetection, // Add this
-              recommendation: msg.payload.recommendation, // Add this
+              recommendation: msg.payload.recommendation,
               evidence: msg.payload.evidence,
+              technicalExplanation: msg.payload.technicalExplanation || "No technical breakdown provided.",
               dataSources: [], // Would come from meta
               createdAt: new Date().toISOString(),
               streamingText: accumulatedTextRef.current,
             };
-            
+
             setStatus('ready');
             queryClient.setQueryData(['sentinel', analysisId], finalResult);
             sendAnalytics('sentinel_analysis_complete', { analysisId, finalScore: finalResult.finalScore });
-            
+
             onComplete?.(finalResult);
             es.close();
           }
-          
+
           else if (msg.type === 'error') {
             setStatus('failed');
             es.close();
@@ -111,12 +112,12 @@ export function useSentinelAnalyze() {
         es.close();
         // Fallback to polling
         pollForResult(
-          analysisId, 
-          setStatus, 
-          setStreamingText, 
+          analysisId,
+          setStatus,
+          setStreamingText,
           accumulatedTextRef,
-          queryClient, 
-          sendAnalytics, 
+          queryClient,
+          sendAnalytics,
           onComplete
         );
       };
@@ -127,12 +128,12 @@ export function useSentinelAnalyze() {
     } else {
       // No SSE support, use polling
       return pollForResult(
-        analysisId, 
-        setStatus, 
-        setStreamingText, 
+        analysisId,
+        setStatus,
+        setStreamingText,
         accumulatedTextRef,
-        queryClient, 
-        sendAnalytics, 
+        queryClient,
+        sendAnalytics,
         onComplete
       );
     }
@@ -147,11 +148,11 @@ export function useSentinelAnalyze() {
     });
   }, []);
 
-  return { 
-    startAnalysis, 
-    subscribeToStream, 
-    getResult, 
-    streamingText, 
+  return {
+    startAnalysis,
+    subscribeToStream,
+    getResult,
+    streamingText,
     status,
     analysisId: null as string | null, // Expose if needed
   };
@@ -176,33 +177,33 @@ function pollForResult(
 ) {
   let attempts = 0;
   const maxAttempts = 40;
-  
+
   const interval = setInterval(async () => {
     attempts++;
-    
+
     try {
       const res = await fetch(`/api/sentinel/result/${analysisId}`);
-      
+
       if (res.ok) {
         const data: SentinelResult = await res.json();
-        
+
         clearInterval(interval);
-        
+
         // Update text if we have streaming text
         if (data.streamingText) {
           setStreamingText(data.streamingText);
         } else {
           setStreamingText(data.summary);
         }
-        
+
         setStatus('ready');
         queryClient.setQueryData(['sentinel', analysisId], data);
-        track('sentinel_analysis_complete', { 
-          analysisId, 
+        track('sentinel_analysis_complete', {
+          analysisId,
           finalScore: data.finalScore,
-          method: 'polling' 
+          method: 'polling'
         });
-        
+
         onComplete?.(data);
         return;
       }
@@ -210,14 +211,14 @@ function pollForResult(
       // Continue polling on network errors
       console.log(`Poll attempt ${attempts} failed, retrying...`);
     }
-    
+
     if (attempts >= maxAttempts) {
       clearInterval(interval);
       setStatus('failed');
       console.error('Polling timeout after 120 seconds');
     }
   }, 3000);
-  
+
   // Return cleanup function
   return () => clearInterval(interval);
 }

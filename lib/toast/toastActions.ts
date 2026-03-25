@@ -1,4 +1,4 @@
-import { ToastProps, ToastState, TOAST_LIMIT } from "@/types/toast"
+import { ToastProps, ToastState, TOAST_LIMIT, TOAST_REMOVE_DELAY } from "@/types/toast"
 
 export type ActionType = {
   ADD_TOAST: "ADD_TOAST"
@@ -23,21 +23,21 @@ function genId() {
 
 type Action =
   | {
-      type: ActionType["ADD_TOAST"]
-      toast: Omit<ToastProps, "id">
-    }
+    type: ActionType["ADD_TOAST"]
+    toast: Omit<ToastProps, "id">
+  }
   | {
-      type: ActionType["UPDATE_TOAST"]
-      toast: Partial<ToastProps> & { id: string }
-    }
+    type: ActionType["UPDATE_TOAST"]
+    toast: Partial<ToastProps> & { id: string }
+  }
   | {
-      type: ActionType["DISMISS_TOAST"]
-      toastId?: string
-    }
+    type: ActionType["DISMISS_TOAST"]
+    toastId?: string
+  }
   | {
-      type: ActionType["REMOVE_TOAST"]
-      toastId?: string
-    }
+    type: ActionType["REMOVE_TOAST"]
+    toastId?: string
+  }
 
 export const reducer = (state: ToastState, action: Action): ToastState => {
   switch (action.type) {
@@ -73,9 +73,9 @@ export const reducer = (state: ToastState, action: Action): ToastState => {
         toasts: state.toasts.map((t) =>
           t.id === toastId || toastId === undefined
             ? {
-                ...t,
-                open: false,
-              }
+              ...t,
+              open: false,
+            }
             : t
         ),
       }
@@ -108,7 +108,7 @@ const addToRemoveQueue = (toastId: string) => {
       type: actionTypes.REMOVE_TOAST,
       toastId: toastId,
     })
-  }, 5000)  // Use the constant (5000ms = 5s)
+  }, TOAST_REMOVE_DELAY)
 
   toastTimeouts.set(toastId, timeout)
 }
@@ -128,7 +128,7 @@ export function toast(props: Omit<ToastProps, "id">) {
   const id = genId()
 
   const dismiss = () => dispatch({ type: actionTypes.DISMISS_TOAST, toastId: id })
-  
+
   dispatch({
     type: actionTypes.ADD_TOAST,
     toast: {
@@ -139,6 +139,9 @@ export function toast(props: Omit<ToastProps, "id">) {
       },
     },
   })
+
+  // Auto-dismiss after 5 seconds
+  setTimeout(dismiss, 5000)
 
   return {
     id: id,

@@ -60,25 +60,26 @@ export interface Recommendation {
 
 export type SSEMessage =
   | { type: 'chunk'; payload: { text: string } }
-  | { 
-      type: 'meta'; 
-      payload: { 
-        blockHeight?: number; 
-        socialScrapeAt?: string; 
-        dataSources?: { source: string; timestamp: string }[] 
-      } 
+  | {
+    type: 'meta';
+    payload: {
+      blockHeight?: number;
+      socialScrapeAt?: string;
+      dataSources?: { source: string; timestamp: string }[]
     }
-  | { 
-      type: 'done'; 
-      payload: { 
-        summary: string;
-        finalScore: number;
-        metrics: SentinelMetrics;
-        evidence: EvidenceItem[];
-        rugDetection: RugDetectionResult;
-        recommendation: Recommendation;
-      } 
+  }
+  | {
+    type: 'done';
+    payload: {
+      summary: string;
+      finalScore: number;
+      metrics: SentinelMetrics;
+      evidence: EvidenceItem[];
+      rugDetection: RugDetectionResult;
+      recommendation: Recommendation;
+      technicalExplanation: string;
     }
+  }
   | { type: 'error'; payload: { message: string } };
 
 export interface EvidenceItem {
@@ -100,6 +101,7 @@ export interface SentinelResult {
   recommendation: Recommendation;
   evidence: EvidenceItem[];
   dataSources: { source: string; timestamp: string }[];
+  technicalExplanation: string;
   createdAt: string;
   streamingText?: string;
 }

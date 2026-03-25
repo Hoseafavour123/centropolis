@@ -1,3 +1,5 @@
+// /components/Sentinel/EvidenceCard.tsx
+
 'use client';
 
 import { EvidenceItem } from '@/types/sentinel';

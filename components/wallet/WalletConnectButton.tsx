@@ -4,7 +4,7 @@ import { useWallet } from "@solana/wallet-adapter-react";
 import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
 import "@solana/wallet-adapter-react-ui/styles.css";
 import { useEffect, useCallback } from "react";
-import { useWalletStore } from "@/lib/store/useWalletStore";
+import { useWalletStore } from "@/store/useWalletStore";
 import { useUser } from "@clerk/nextjs";
 import axios from "axios";
 

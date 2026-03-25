@@ -1,3 +1,6 @@
+// /components/Sentinel/SentinelPanel.tsx
+
+
 'use client';
 
 import { SentinelResult } from '@/types/sentinel';
@@ -5,9 +8,18 @@ import { SafetyScoreBadge } from './SafetyScoreBadge';
 import { RugDetectionPanel } from './RugDetectionPanel';
 import { RecommendationPanel } from './RecommendationPanel';
 import { EvidenceCard } from './EvidenceCard';
+import { ActionsPanel } from './ActionsPanel';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Loader2, Terminal, Activity } from 'lucide-react';
+import { Loader2, Terminal, Activity, Info, Bot } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useState } from 'react';
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
 
 interface SentinelPanelProps {
   analysis?: SentinelResult | null;
@@ -18,15 +30,17 @@ interface SentinelPanelProps {
   onExplain: () => void;
 }
 
-export function SentinelPanel({ 
-  analysis, 
-  streamingText, 
-  status, 
-  onOpenTrade, 
-  onSaveReport, 
-  onExplain 
+export function SentinelPanel({
+  analysis,
+  streamingText,
+  status,
+  onOpenTrade,
+  onSaveReport,
+  onExplain
 }: SentinelPanelProps) {
-  if (status === 'idle') {
+  const [showExplanation, setShowExplanation] = useState(false);
+
+  if (status === 'idle' && !analysis) {
     return (
       <div className="h-[600px] flex items-center justify-center text-muted-foreground border border-dashed border-border rounded-xl">
         <div className="text-center space-y-4">
@@ -52,11 +66,14 @@ export function SentinelPanel({
       {/* Header with Score */}
       <div className="flex items-start justify-between">
         <div>
-          <h1 className="text-2xl font-bold mb-2">Sentinel Deep Analysis</h1>
+          <h1 className="text-2xl font-bold mb-2 flex items-center gap-2">
+            <Bot className="w-6 h-6 text-primary animate-pulse" />
+            Sentinel Deep Analysis
+          </h1>
           <p className="text-sm text-muted-foreground">
-            {isLoading 
-              ? 'Streaming real-time analysis...' 
-              : displayData 
+            {isLoading
+              ? 'Streaming real-time analysis...'
+              : displayData
                 ? `Completed ${new Date(displayData.createdAt).toLocaleString()}`
                 : 'Processing...'
             }
@@ -95,7 +112,7 @@ export function SentinelPanel({
 
       {/* AI Recommendation */}
       {displayData?.recommendation && (
-        <RecommendationPanel 
+        <RecommendationPanel
           recommendation={displayData.recommendation}
           onOpenTrade={onOpenTrade}
         />
@@ -104,42 +121,45 @@ export function SentinelPanel({
       {/* Structured Metrics */}
       {displayData && (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <MetricCard 
-            label="Liquidity" 
-            value={`$${(displayData.metrics.liquidityDepth / 1e6).toFixed(0)}M`}
+          <MetricCard
+            label="Liquidity"
+            value={formatCurrency(displayData.metrics.liquidityDepth)}
             change="+127%"
             positive
           />
-          <MetricCard 
-            label="Top 20 Holders" 
+          <MetricCard
+            label="Top 20 Holders"
             value={`${displayData.metrics.topHoldersPercent}%`}
             change="Moderate"
             warning
           />
-          <MetricCard 
-            label="Smart Buys" 
+          <MetricCard
+            label="Smart Buys"
             value={displayData.metrics.recentSmartBuys.toString()}
             change="+12%"
             positive
           />
-          <MetricCard 
-            label="Volatility" 
-            value={(displayData.metrics.volatilityIndex * 100).toFixed(1) + '%'}
+          <MetricCard
+            label="Volatility"
+            value={displayData.metrics.volatilityIndex.toFixed(1) + '%'}
             change="Normal"
             neutral
           />
         </div>
       )}
 
+
+
       {/* Evidence Grid */}
       {displayData?.evidence && (
         <div className="space-y-3">
           <div className="flex items-center justify-between">
             <h3 className="font-semibold">Evidence & Signals</h3>
-            <button 
-              onClick={onExplain}
-              className="text-xs text-primary hover:underline"
+            <button
+              onClick={() => setShowExplanation(true)}
+              className="text-xs text-primary hover:underline flex items-center gap-1"
             >
+              <Info className="w-3 h-3" />
               View Explainability
             </button>
           </div>
@@ -150,21 +170,68 @@ export function SentinelPanel({
           </div>
         </div>
       )}
+
+      {/* Explainability Sheet */}
+      <Sheet open={showExplanation} onOpenChange={setShowExplanation}>
+        <SheetContent side="right" className="sm:max-w-md border-l border-border/50">
+          <SheetHeader className="pb-6 border-b border-border/30">
+            <div className="flex items-center gap-2 text-primary mb-1">
+              <Terminal className="w-5 h-5" />
+              <span className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Sentinel Logic</span>
+            </div>
+            <SheetTitle className="text-2xl font-bold">AI Audit Reasoning</SheetTitle>
+            <SheetDescription>
+              A technical breakdown of the heuristics and logic applied to this specific analysis.
+            </SheetDescription>
+          </SheetHeader>
+
+          <div className="py-6 space-y-6 overflow-y-auto max-h-[calc(100vh-200px)]">
+            <div className="space-y-4">
+              <h4 className="text-sm font-semibold flex items-center gap-2">
+                <Info className="w-4 h-4 text-primary" />
+                Technical Logic
+              </h4>
+              <div className="text-sm text-muted-foreground leading-relaxed whitespace-pre-wrap font-sans bg-muted/30 p-4 rounded-lg border border-border/50">
+                {displayData?.technicalExplanation || "No technical breakdown available for this audit."}
+              </div>
+            </div>
+
+            <div className="space-y-3">
+              <h4 className="text-sm font-semibold">Audit Confidence</h4>
+              <div className="space-y-2">
+                <div className="flex justify-between text-xs mb-1">
+                  <span className="text-muted-foreground">Synthesized Data Quality</span>
+                  <span className="font-mono text-primary">High</span>
+                </div>
+                <div className="h-1.5 w-full bg-muted rounded-full overflow-hidden">
+                  <div className="h-full bg-primary" style={{ width: '85%' }} />
+                </div>
+              </div>
+            </div>
+
+            <div className="p-4 rounded-xl bg-primary/5 border border-primary/10">
+              <p className="text-xs text-primary/70 leading-relaxed italic">
+                Notice: Sentinel Explainability uses internal weight modeling to correlate on-chain transactions, social sentiment, and contract heuristics.
+              </p>
+            </div>
+          </div>
+        </SheetContent>
+      </Sheet>
     </div>
   );
 }
 
 // Helper component for metrics
-function MetricCard({ 
-  label, 
-  value, 
-  change, 
-  positive, 
-  warning, 
-  neutral 
-}: { 
-  label: string; 
-  value: string; 
+function MetricCard({
+  label,
+  value,
+  change,
+  positive,
+  warning,
+  neutral
+}: {
+  label: string;
+  value: string;
   change: string;
   positive?: boolean;
   warning?: boolean;
@@ -184,4 +251,12 @@ function MetricCard({
       </div>
     </Card>
   );
+}
+
+// Utility to format currency dynamically
+function formatCurrency(value: number): string {
+  if (value >= 1_000_000_000) return `$${(value / 1_000_000_000).toFixed(1)}B`;
+  if (value >= 1_000_000) return `$${(value / 1_000_000).toFixed(1)}M`;
+  if (value >= 1_000) return `$${(value / 1_000).toFixed(1)}K`;
+  return `$${value.toFixed(0)}`;
 }

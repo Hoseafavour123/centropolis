@@ -17,6 +17,7 @@ export async function GET(req: Request) {
         }
 
         const balance = await heliusService.getWalletBalance(address);
+        console.log("Balance:", balance);
         return NextResponse.json({ balance });
     } catch (error) {
         console.error('Balance fetch error:', error);

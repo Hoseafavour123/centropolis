@@ -1,14 +1,14 @@
-
+// /components/Sentinel/RecommendationPanel.tsx
 'use client';
 
 import { Recommendation } from '@/types/sentinel';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { 
-  TrendingUp, 
-  TrendingDown, 
-  Minus, 
+import {
+  TrendingUp,
+  TrendingDown,
+  Minus,
   AlertTriangle,
   Target,
   Clock,
@@ -39,7 +39,7 @@ const timeHorizonLabels = {
 export function RecommendationPanel({ recommendation, onOpenTrade }: RecommendationPanelProps) {
   const config = actionConfig[recommendation.action];
   const Icon = config.icon;
-  
+
   const isPositive = ['strong_buy', 'buy'].includes(recommendation.action);
   const isDanger = ['avoid', 'emergency_exit'].includes(recommendation.action);
 
@@ -49,7 +49,7 @@ export function RecommendationPanel({ recommendation, onOpenTrade }: Recommendat
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className={cn("p-2 rounded-lg bg-background")}>
-              <Icon className={cn("w-6 h-6", 
+              <Icon className={cn("w-6 h-6",
                 config.color === 'green' && "text-green-500",
                 config.color === 'blue' && "text-blue-500",
                 config.color === 'yellow' && "text-yellow-500",
@@ -64,7 +64,7 @@ export function RecommendationPanel({ recommendation, onOpenTrade }: Recommendat
               </p>
             </div>
           </div>
-          <Badge 
+          <Badge
             className={cn(
               "text-sm font-bold px-4 py-1.5",
               config.color === 'green' && "bg-green-500 text-white",
@@ -78,7 +78,7 @@ export function RecommendationPanel({ recommendation, onOpenTrade }: Recommendat
           </Badge>
         </div>
       </CardHeader>
-      
+
       <CardContent className="space-y-6">
         {/* Headline Summary */}
         <div className="space-y-2">
@@ -130,7 +130,7 @@ export function RecommendationPanel({ recommendation, onOpenTrade }: Recommendat
               </div>
             </div>
           )}
-          
+
           <div className="p-3 rounded-lg bg-background/50 border">
             <div className="flex items-center gap-2 text-xs text-muted-foreground mb-1">
               <Clock className="w-3 h-3" /> Time Horizon
@@ -150,7 +150,7 @@ export function RecommendationPanel({ recommendation, onOpenTrade }: Recommendat
             </div>
             <div className="flex gap-2">
               {recommendation.takeProfit.map((tp, i) => (
-                <div 
+                <div
                   key={i}
                   className="flex-1 p-2 rounded-lg bg-green-500/5 border border-green-500/20 text-center"
                 >
@@ -164,27 +164,6 @@ export function RecommendationPanel({ recommendation, onOpenTrade }: Recommendat
           </div>
         )}
 
-        {/* Action Button */}
-        {!isDanger && (
-          <Button 
-            onClick={onOpenTrade}
-            className={cn(
-              "w-full h-12 text-lg font-semibold",
-              isPositive ? "bg-green-600 hover:bg-green-700" : "bg-primary"
-            )}
-          >
-            Execute {config.label} Strategy
-          </Button>
-        )}
-        
-        {isDanger && (
-          <div className="p-4 rounded-lg bg-red-500/10 border border-red-500/30 text-center">
-            <AlertTriangle className="w-8 h-8 text-red-500 mx-auto mb-2" />
-            <p className="text-sm font-medium text-red-500">
-              Trading disabled due to critical risk assessment
-            </p>
-          </div>
-        )}
       </CardContent>
     </Card>
   );

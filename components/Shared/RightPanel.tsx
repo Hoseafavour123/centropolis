@@ -2,9 +2,24 @@
 
 import { QuickTrade } from "@/features/dashboard/QuickTrade";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { TrendingUp, Wallet } from "lucide-react";
+import { Wallet } from "lucide-react";
+import { useWalletData } from "@/hooks/useWalletData";
+import { useQuery } from "@tanstack/react-query";
+import { MarketCoin } from "@/services/coingeckoService";
 
 export function RightPanel() {
+  const { balance, isLoading, isError } = useWalletData();
+
+  const { data: marketCoins } = useQuery<MarketCoin[]>({
+    queryKey: ["market"],
+    queryFn: async () => {
+      const res = await fetch("/api/dashboard/market");
+      if (!res.ok) return [];
+      return res.json();
+    },
+    staleTime: 60_000,
+  });
+
   return (
     <div className="space-y-6">
       <QuickTrade />
@@ -17,11 +32,7 @@ export function RightPanel() {
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
-          {[
-            { symbol: "BTC", price: 52340, change: 1.2 },
-            { symbol: "ETH", price: 2890, change: -0.5 },
-            { symbol: "WIF", price: 0.248, change: 4.5 },
-          ].map((coin) => (
+          {(marketCoins ?? []).map((coin) => (
             <div
               key={coin.symbol}
               className="flex items-center justify-between"
@@ -45,6 +56,9 @@ export function RightPanel() {
               </div>
             </div>
           ))}
+          {(!marketCoins || marketCoins.length === 0) && (
+            <p className="text-xs text-muted-foreground">Loading market data…</p>
+          )}
         </CardContent>
       </Card>
 
@@ -67,7 +81,7 @@ export function RightPanel() {
           </div>
           <div className="mt-3 flex justify-between items-center">
             <span className="text-xs text-muted-foreground">Total Balance</span>
-            <span className="font-bold font-mono">$12,450.00</span>
+            <span className="font-bold font-mono">{isLoading ? "Loading..." : isError ? "Error" : balance}</span>
           </div>
         </CardContent>
       </Card>

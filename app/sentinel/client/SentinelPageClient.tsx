@@ -1,6 +1,6 @@
+// /app/sentinel/client/SentinelPageClient.tsx
 'use client';
 
-import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { SentinelQueryBar } from '@/components/Sentinel/SentinelQueryBar';
 import { SentinelPanel } from '@/components/Sentinel/SentinelPanel';
@@ -9,26 +9,26 @@ import { useSentinelAnalyze } from '@/hooks/useSentinelAnalyze';
 import { SentinelAnalyzeRequest, SentinelResult } from '@/types/sentinel';
 import { useGlobalStore } from '@/lib/store/globalStore';
 import { useToast } from "@/hooks/use-toast"
+import { useSentinelStore } from '@/store/useSentinelStore';
 
 export function SentinelPageClient() {
   const router = useRouter();
   const { toast } = useToast();
   const { selectedChain } = useGlobalStore();
   const { startAnalysis, subscribeToStream, streamingText, status } = useSentinelAnalyze();
-  const [currentAnalysis, setCurrentAnalysis] = useState<SentinelResult | null>(null);
-  const [analysisId, setAnalysisId] = useState<string | null>(null);
+  const { currentAnalysis, analysisId, setCurrentAnalysis, setAnalysisId } = useSentinelStore();
 
   const handleAnalyze = async (req: SentinelAnalyzeRequest) => {
     try {
       const { analysisId: id } = await startAnalysis(req);
       setAnalysisId(id);
       setCurrentAnalysis(null);
-      
+
       // Start streaming
       const cleanup = subscribeToStream(id, (result) => {
         setCurrentAnalysis(result);
       });
-      
+
       // Cleanup on unmount handled by hook
     } catch (error) {
       toast({
@@ -54,7 +54,7 @@ export function SentinelPageClient() {
     <div className="grid grid-cols-1 xl:grid-cols-12 gap-6">
       {/* Left Column - Query */}
       <div className="xl:col-span-3 space-y-6">
-        <SentinelQueryBar 
+        <SentinelQueryBar
           defaultChain={selectedChain}
           onAnalyze={handleAnalyze}
           isLoading={status === 'streaming'}
@@ -76,14 +76,13 @@ export function SentinelPageClient() {
       {/* Right Column - Actions */}
       <div className="xl:col-span-3">
         <div className="sticky top-24">
-          <ActionsPanel
-            analysisId={analysisId || undefined}
-            safetyScore={currentAnalysis?.finalScore}
-            onOpenTrade={handleOpenTrade}
-            onSave={() => {}}
-            onShare={() => {}}
-            onDownload={() => {}}
-          />
+          {currentAnalysis && (
+            <ActionsPanel
+              analysis={currentAnalysis}
+              onOpenTrade={handleOpenTrade}
+              onSave={(id) => console.log('Save', id)}
+            />
+          )}
         </div>
       </div>
     </div>

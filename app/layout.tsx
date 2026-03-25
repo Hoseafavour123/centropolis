@@ -7,6 +7,7 @@ import { Sidebar } from "@/components/Shared/Sidebar"
 import { Providers } from "@/components/providers/Providers"; // React Query Provider
 import { ThemeProvider } from "@/components/providers/theme-provider";
 import { Toaster } from "@/components/ui/toast/toaster"
+import '@solana/wallet-adapter-react-ui/styles.css';
 
 const inter = Inter({ subsets: ["latin"] });
 

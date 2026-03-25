@@ -16,6 +16,7 @@ model User {
   createdAt     DateTime @default(now())
   wallets       Wallet[]
   transactions  Transaction[]
+  sentinelAnalyses SentinelAnalysis[]
 }
 
 model Wallet {
@@ -40,4 +41,16 @@ model Transaction {
   createdAt DateTime @default(now())
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model SentinelAnalysis {
+  id           String   @id
+  tokenAddress String
+  userId       String?
+  result       Json?
+  score        Int?
+  status       String
+  createdAt    DateTime @default(now())
+
+  user         User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
 }

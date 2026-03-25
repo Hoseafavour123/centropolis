@@ -1,3 +1,5 @@
+// components/Sentinel/SentinelQueryBar.tsx
+
 'use client';
 
 import { useState } from 'react';
