@@ -17,6 +17,7 @@ model User {
   wallets       Wallet[]
   transactions  Transaction[]
   sentinelAnalyses SentinelAnalysis[]
+  watchlists    Watchlist[]
 }
 
 model Wallet {
@@ -53,4 +54,16 @@ model SentinelAnalysis {
   createdAt    DateTime @default(now())
 
   user         User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Watchlist {
+  id        String   @id @default(uuid())
+  userId    String
+  chain     String
+  address   String
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, chain, address], name: "userId_chain_address")
 }

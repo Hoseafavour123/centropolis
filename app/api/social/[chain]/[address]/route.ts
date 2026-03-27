@@ -1,3 +1,5 @@
+// app/api/social/[chain]/[address]/route.ts
+
 import { NextRequest, NextResponse } from 'next/server';
 import { SocialPost } from '@/types/token';
 

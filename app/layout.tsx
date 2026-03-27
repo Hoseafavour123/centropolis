@@ -8,6 +8,7 @@ import { Providers } from "@/components/providers/Providers"; // React Query Pro
 import { ThemeProvider } from "@/components/providers/theme-provider";
 import { Toaster } from "@/components/ui/toast/toaster"
 import '@solana/wallet-adapter-react-ui/styles.css';
+import { RightPanelWrapper } from "@/components/Shared/RightPanelWrapper";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -20,6 +21,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <ClerkProvider>
       <html lang="en" suppressHydrationWarning className={cn("font-sans", geist.variable)}>
+        <head />
         <body className={inter.className} suppressHydrationWarning>
           <ThemeProvider
             attribute="class"
@@ -41,8 +43,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                       {/* Right Action Panel */}
                       <div className="xl:col-span-3">
                         <div className="sticky top-24">
-                          {/* Import RightPanel dynamically if it gets heavy, but for now static import is fine */}
-                          <RightPanelImport />
+                          <RightPanelWrapper />
                         </div>
                       </div>
                     </div>
@@ -59,13 +60,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 }
 
 // Helper to avoid import issues in the single file representation
-// In a real app, this would be a direct import in layout.tsx
-import { RightPanel } from "@/components/Shared/RightPanel";
 import { cn } from "@/lib/utils";
 
 const geist = Geist({ subsets: ['latin'], variable: '--font-sans' });
-
-
-function RightPanelImport() {
-  return <RightPanel />;
-}

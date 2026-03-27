@@ -1,98 +1,135 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { TradeRoute } from '@/types/token';
+import { jupiterTokenService } from '@/services/token/jupiterTokenService';
+import { tokenAggregator } from '@/services/token/tokenAggregator';
+import { TradeQuoteResponse } from '@/types/token';
+import { prisma } from '@/lib/prisma';
+
+const SOL_MINT = 'So11111111111111111111111111111111111111112';
+const USDC_MINT = 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v';
+const USDT_MINT = 'Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB';
+
+// Mints for which we have pre-configured Jupiter referral token accounts
+const FEE_MINTS = new Set([SOL_MINT, USDC_MINT, USDT_MINT]);
+
+const PLATFORM_FEE_BPS = 1500; // 15%
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
-  
-  const chain = searchParams.get('chain') || 'solana';
-  const fromToken = searchParams.get('from') || 'USDC';
-  const toToken = searchParams.get('to') || 'SOL';
-  const amount = searchParams.get('amount') || '1000';
 
-  // Simulate network delay
-  await new Promise(r => setTimeout(r, 100 + Math.random() * 200));
+  let inputMint = searchParams.get('inputMint') || searchParams.get('from');
+  let outputMint = searchParams.get('outputMint') || searchParams.get('to');
+  const amount = searchParams.get('amount');
+  const slippageBps = parseInt(searchParams.get('slippageBps') || '50', 10);
 
-  const amountNum = parseFloat(amount);
-  const outputBase = fromToken === 'USDC' && toToken === 'SOL' ? amountNum / 136.82 :
-                     fromToken === 'SOL' && toToken === 'USDC' ? amountNum * 136.82 :
-                     amountNum * (Math.random() * 100);
+  if (!inputMint || !outputMint || !amount) {
+    return NextResponse.json({ error: 'Missing required parameters' }, { status: 400 });
+  }
 
-  const routes: TradeRoute[] = [
-    {
-      routeId: `route-jupiter-${Date.now()}`,
-      provider: 'Jupiter',
-      fromToken,
-      toToken,
-      expectedOutput: (outputBase * 0.9985).toFixed(6),
-      minimumOutput: (outputBase * 0.995).toFixed(6),
-      priceImpact: 0.08,
-      slippage: 0.5,
-      feeUsd: amountNum * 0.0005,
-      platformFee: 0.15,
-      mevProtected: true,
-      jitoProtected: true,
-      steps: [{ dex: 'Jupiter', from: fromToken, to: toToken, percent: 100 }],
-      estimatedTimeMs: 450,
-    },
-    {
-      routeId: `route-orca-${Date.now()}`,
-      provider: 'Orca',
-      fromToken,
-      toToken,
-      expectedOutput: (outputBase * 0.9975).toFixed(6),
-      minimumOutput: (outputBase * 0.994).toFixed(6),
-      priceImpact: 0.12,
-      slippage: 0.5,
-      feeUsd: amountNum * 0.0003,
-      platformFee: 0.15,
-      mevProtected: true,
-      jitoProtected: false,
-      steps: [{ dex: 'Orca', from: fromToken, to: toToken, percent: 100 }],
-      estimatedTimeMs: 320,
-    },
-    {
-      routeId: `route-raydium-${Date.now()}`,
-      provider: 'Raydium',
-      fromToken,
-      toToken,
-      expectedOutput: (outputBase * 0.996).toFixed(6),
-      minimumOutput: (outputBase * 0.992).toFixed(6),
-      priceImpact: 0.18,
-      slippage: 0.5,
-      feeUsd: amountNum * 0.0025,
-      platformFee: 0.15,
-      mevProtected: false,
-      jitoProtected: false,
-      steps: [
-        { dex: 'Raydium', from: fromToken, to: 'USDC', percent: 50 },
-        { dex: 'Raydium', from: 'USDC', to: toToken, percent: 50 },
-      ],
-      estimatedTimeMs: 680,
-    },
-    {
-      routeId: `route-meteora-${Date.now()}`,
-      provider: 'Meteora',
-      fromToken,
-      toToken,
-      expectedOutput: (outputBase * 0.997).toFixed(6),
-      minimumOutput: (outputBase * 0.993).toFixed(6),
-      priceImpact: 0.15,
-      slippage: 0.5,
-      feeUsd: amountNum * 0.00025,
-      platformFee: 0.15,
-      mevProtected: true,
-      jitoProtected: true,
-      steps: [{ dex: 'Meteora', from: fromToken, to: toToken, percent: 100 }],
-      estimatedTimeMs: 520,
-    },
-  ];
+  // Map simple symbols → mints for backwards compatibility
+  inputMint = inputMint === 'SOL' ? SOL_MINT : inputMint === 'USDC' ? USDC_MINT : inputMint;
+  outputMint = outputMint === 'SOL' ? SOL_MINT : outputMint === 'USDC' ? USDC_MINT : outputMint;
 
-  // Sort by expected output descending
-  routes.sort((a, b) => parseFloat(b.expectedOutput) - parseFloat(a.expectedOutput));
+  try {
+    // Fetch decimals for input token to convert amount to atoms
+    const inputMeta = await tokenAggregator.getTokenMeta('solana', inputMint).catch(() => null);
+    const inputDecimals = inputMeta?.decimals ?? (inputMint === USDC_MINT ? 6 : 9);
 
-  return NextResponse.json(routes, {
-    headers: {
-      'Cache-Control': 'public, s-maxage=10, stale-while-revalidate=30',
-    },
-  });
+    const fullAmountInAtoms = Math.floor(parseFloat(amount) * Math.pow(10, inputDecimals));
+
+    // ─── Fee strategy ────────────────────────────────────────────────────────
+    // Prefer collecting fees from the OUTPUT token (standard Jupiter referral).
+    // When the output is a non-major token (e.g. BONK), fall back to collecting
+    // from the INPUT token if it is a major token (SOL/USDC/USDT).
+    // Jupiter accepts a referral token account for either side — it deducts fees
+    // from whichever mint the provided feeAccount belongs to.
+    let feeMint: string | null = null;
+    let feeStrategy: 'output' | 'input' | 'none' = 'none';
+
+    if (FEE_MINTS.has(outputMint)) {
+      feeMint = outputMint;
+      feeStrategy = 'output';
+    } else if (FEE_MINTS.has(inputMint)) {
+      feeMint = inputMint;
+      feeStrategy = 'input';
+    }
+
+    // Only pass platformFeeBps when we have a fee account to collect into
+    const platformFeeBps = feeMint ? PLATFORM_FEE_BPS : undefined;
+
+    // Get raw Jupiter quote
+    const rawQuote = await jupiterTokenService.getRawQuote(
+      inputMint,
+      outputMint,
+      fullAmountInAtoms,
+      slippageBps,
+      platformFeeBps
+    );
+
+    if (!rawQuote || rawQuote.error) {
+      console.error('[TradeQuoteAPI] Jupiter quote error:', rawQuote?.error);
+      return NextResponse.json({ error: 'Failed to fetch quote from Jupiter', details: rawQuote?.error }, { status: 500 });
+    }
+
+    // Production Sentinel & Token Data
+    const outputMeta = await tokenAggregator.getTokenMeta('solana', outputMint).catch(() => null);
+
+    // Check Sentinel Analysis history
+    const sentinelAnalysis = await prisma.sentinelAnalysis.findFirst({
+      where: { tokenAddress: outputMint },
+      orderBy: { createdAt: 'desc' }
+    });
+
+    let sentinelScore = 50;
+    let safetyBand: "safe" | "caution" | "danger" = "caution";
+    let liquidityScore = 50;
+    let mevRisk: "low" | "medium" | "high" = "medium";
+
+    if (sentinelAnalysis && sentinelAnalysis.score !== null) {
+      sentinelScore = sentinelAnalysis.score;
+      safetyBand = sentinelScore > 80 ? 'safe' : sentinelScore > 50 ? 'caution' : 'danger';
+
+      const resData = sentinelAnalysis.result as any;
+      if (resData?.metrics) {
+        liquidityScore = resData.metrics.liquidityDepth
+          ? Math.min(100, (resData.metrics.liquidityDepth / 1_000_000) * 100)
+          : 50;
+      }
+      if (resData?.rugDetection) {
+        mevRisk = resData.rugDetection.riskLevel === 'high' || resData.rugDetection.riskLevel === 'critical'
+          ? 'high' : 'low';
+      }
+    } else if (outputMeta?.safetyScore) {
+      sentinelScore = outputMeta.safetyScore;
+      safetyBand = sentinelScore > 80 ? 'safe' : sentinelScore > 50 ? 'caution' : 'danger';
+    } else if (outputMint === USDC_MINT || outputMint === SOL_MINT || outputMint === USDT_MINT) {
+      sentinelScore = 99;
+      safetyBand = 'safe';
+      liquidityScore = 99;
+      mevRisk = 'low';
+    }
+
+    const enrichedQuote: TradeQuoteResponse = {
+      inAmount: fullAmountInAtoms.toString(),
+      outAmount: rawQuote.outAmount,
+      priceImpact: parseFloat(rawQuote.priceImpactPct) || 0,
+      route: rawQuote,
+      estimatedFees: parseFloat(rawQuote.platformFee?.amount || '0'),
+
+      // Fee routing metadata — forwarded through the client to the swap API
+      feeMint,
+      feeStrategy,
+
+      sentinelScore,
+      safetyBand,
+      liquidityScore,
+      mevRisk,
+    };
+
+    return NextResponse.json(enrichedQuote, {
+      headers: { 'Cache-Control': 'no-store, max-age=0' },
+    });
+  } catch (error) {
+    console.error('[TradeQuoteAPI] Route error:', error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  }
 }

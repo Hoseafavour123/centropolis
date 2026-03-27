@@ -1,219 +1,265 @@
-'use client';
+"use client";
 
-import { useEffect, useRef, useState } from 'react';
-import { PricePoint } from '@/types/token';
-import { usePriceStream } from '@/hooks/usePriceStream';
-import { Card, CardContent, CardHeader } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { cn } from '@/lib/utils';
-import { Loader2 } from 'lucide-react';
+import { useEffect, useRef, useState, useMemo } from "react";
+import { PricePoint } from "@/types/token";
+import { usePriceStream } from "@/hooks/usePriceStream";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Loader2 } from "lucide-react";
+import { createChart, IChartApi, ISeriesApi, Time, LineStyle, CrosshairMode, CandlestickSeries, LineSeries } from "lightweight-charts";
+import { useTheme } from "next-themes";
 
 interface PriceChartProps {
   chain: string;
   address: string;
   initialData?: PricePoint[];
-  range: '1d' | '7d' | '30d' | 'all';
-  onRangeChange?: (range: '1d' | '7d' | '30d' | 'all') => void;
+  range: "1d" | "7d" | "30d" | "all";
+  onRangeChange?: (range: "1d" | "7d" | "30d" | "all") => void;
 }
 
-// Lightweight chart implementation using canvas
-export function PriceChart({ 
-  chain, 
-  address, 
-  initialData, 
-  range, 
-  onRangeChange 
+export function PriceChart({
+  chain,
+  address,
+  initialData,
+  range,
+  onRangeChange,
 }: PriceChartProps) {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const chartContainerRef = useRef<HTMLDivElement>(null);
+  const chartRef = useRef<IChartApi | null>(null);
+  const candleSeriesRef = useRef<ISeriesApi<"Candlestick"> | null>(null);
+  const ma20SeriesRef = useRef<ISeriesApi<"Line"> | null>(null);
+  const ma50SeriesRef = useRef<ISeriesApi<"Line"> | null>(null);
+
+  const { theme } = useTheme();
   const { data: priceData, isLoading } = usePriceStream(chain, address, range);
-  const [hoverData, setHoverData] = useState<PricePoint | null>(null);
-  const [showMA, setShowMA] = useState({ ma20: true, ma50: false });
 
-  const data = priceData || initialData || [];
+  const [showMA, setShowMA] = useState({ ma20: false, ma50: false });
+  const data = useMemo(() => priceData || initialData || [], [priceData, initialData]);
 
+  // Init chart — runs once on mount only
   useEffect(() => {
-    if (!canvasRef.current || data.length === 0) return;
+    if (!chartContainerRef.current) return;
 
-    const canvas = canvasRef.current;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-
-    // Set canvas size
-    const dpr = window.devicePixelRatio || 1;
-    const rect = canvas.getBoundingClientRect();
-    canvas.width = rect.width * dpr;
-    canvas.height = rect.height * dpr;
-    ctx.scale(dpr, dpr);
-
-    // Clear
-    ctx.clearRect(0, 0, rect.width, rect.height);
-
-    // Calculate scales
-    const padding = { top: 20, right: 60, bottom: 30, left: 10 };
-    const chartWidth = rect.width - padding.left - padding.right;
-    const chartHeight = rect.height - padding.top - padding.bottom;
-
-    const prices = data.map(d => [d.open, d.high, d.low, d.close]).flat();
-    const minPrice = Math.min(...prices) * 0.995;
-    const maxPrice = Math.max(...prices) * 1.005;
-    const priceRange = maxPrice - minPrice;
-
-    const timeRange = data[data.length - 1].time - data[0].time;
-
-    // Helper functions
-    const x = (time: number) => padding.left + ((time - data[0].time) / timeRange) * chartWidth;
-    const y = (price: number) => padding.top + chartHeight - ((price - minPrice) / priceRange) * chartHeight;
-
-    // Draw grid
-    ctx.strokeStyle = 'rgba(255,255,255,0.05)';
-    ctx.lineWidth = 1;
-    for (let i = 0; i <= 4; i++) {
-      const yPos = padding.top + (chartHeight / 4) * i;
-      ctx.beginPath();
-      ctx.moveTo(padding.left, yPos);
-      ctx.lineTo(padding.left + chartWidth, yPos);
-      ctx.stroke();
+    // Destroy any existing chart instance before creating a new one
+    // (guards against React Strict Mode double-invocation in dev)
+    if (chartRef.current) {
+      chartRef.current.remove();
+      chartRef.current = null;
+      candleSeriesRef.current = null;
+      ma20SeriesRef.current = null;
+      ma50SeriesRef.current = null;
     }
 
-    // Draw candles
-    const candleWidth = Math.max(2, (chartWidth / data.length) * 0.7);
+    const isDark = theme === "dark" || document.documentElement.classList.contains("dark");
+    const colors = {
+      bg: "transparent",
+      text: isDark ? "#A3A3A3" : "#525252",
+      grid: isDark ? "#262626" : "#E5E5E5",
+    };
 
-    data.forEach((point, i) => {
-      const xPos = x(point.time);
-      const isGreen = point.close >= point.open;
-      
-      ctx.fillStyle = isGreen ? '#22c55e' : '#ef4444';
-      ctx.strokeStyle = isGreen ? '#22c55e' : '#ef4444';
-
-      // Wick
-      ctx.beginPath();
-      ctx.moveTo(xPos, y(point.high));
-      ctx.lineTo(xPos, y(point.low));
-      ctx.stroke();
-
-      // Body
-      const bodyTop = y(Math.max(point.open, point.close));
-      const bodyBottom = y(Math.min(point.open, point.close));
-      const bodyHeight = Math.max(1, bodyBottom - bodyTop);
-      
-      ctx.fillRect(xPos - candleWidth / 2, bodyTop, candleWidth, bodyHeight);
+    const chart = createChart(chartContainerRef.current, {
+      layout: {
+        background: { type: "solid", color: colors.bg } as any,
+        textColor: colors.text,
+        fontFamily: "Inter, sans-serif",
+      },
+      grid: {
+        vertLines: { color: colors.grid, style: LineStyle.SparseDotted },
+        horzLines: { color: colors.grid, style: LineStyle.SparseDotted },
+      },
+      rightPriceScale: {
+        borderVisible: false,
+        autoScale: true,
+      },
+      timeScale: {
+        borderVisible: false,
+        timeVisible: true,
+        secondsVisible: false,
+      },
+      crosshair: {
+        mode: CrosshairMode.Normal,
+      },
+      handleScroll: {
+        mouseWheel: true,
+        pressedMouseMove: true,
+        horzTouchDrag: true,
+        vertTouchDrag: false,
+      },
+      handleScale: {
+        axisPressedMouseMove: true,
+        mouseWheel: true,
+        pinch: true,
+      },
+      autoSize: true,
     });
 
-    // Draw price labels
-    ctx.fillStyle = 'rgba(255,255,255,0.5)';
-    ctx.font = '11px monospace';
-    ctx.textAlign = 'left';
-    for (let i = 0; i <= 4; i++) {
-      const price = minPrice + (priceRange / 4) * (4 - i);
-      const yPos = padding.top + (chartHeight / 4) * i;
-      ctx.fillText(`$${price.toFixed(2)}`, padding.left + chartWidth + 5, yPos + 4);
+    chartRef.current = chart;
+
+    // Series
+    const upColor = "#22c55e";
+    const downColor = "#ef4444";
+    candleSeriesRef.current = chart.addSeries(CandlestickSeries, {
+      upColor,
+      downColor,
+      borderVisible: false,
+      wickUpColor: upColor,
+      wickDownColor: downColor,
+    });
+
+    ma20SeriesRef.current = chart.addSeries(LineSeries, {
+      color: "#3b82f6",
+      lineWidth: 2,
+      crosshairMarkerVisible: false,
+      lastValueVisible: false,
+      priceLineVisible: false,
+    });
+
+    ma50SeriesRef.current = chart.addSeries(LineSeries, {
+      color: "#f59e0b",
+      lineWidth: 2,
+      crosshairMarkerVisible: false,
+      lastValueVisible: false,
+      priceLineVisible: false,
+    });
+
+    return () => {
+      chart.remove();
+      chartRef.current = null;
+      candleSeriesRef.current = null;
+      ma20SeriesRef.current = null;
+      ma50SeriesRef.current = null;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Mount only — theme changes handled separately below
+
+  // Sync chart colors when theme changes without recreating the chart
+  useEffect(() => {
+    if (!chartRef.current) return;
+    const isDark = theme === "dark" || document.documentElement.classList.contains("dark");
+    chartRef.current.applyOptions({
+      layout: {
+        textColor: isDark ? "#A3A3A3" : "#525252",
+      },
+      grid: {
+        vertLines: { color: isDark ? "#262626" : "#E5E5E5" },
+        horzLines: { color: isDark ? "#262626" : "#E5E5E5" },
+      },
+    });
+  }, [theme]);
+
+  // Update Data
+  useEffect(() => {
+    if (!candleSeriesRef.current || data.length === 0) return;
+
+    // Map to Lightweight Charts format
+    const formattedData = data.map((d) => ({
+      time: Math.floor(d.time / 1000) as Time,
+      open: d.open,
+      high: d.high,
+      low: d.low,
+      close: d.close,
+    })).sort((a, b) => (a.time as number) - (b.time as number));
+
+    // Remove duplicates
+    const uniqueData = formattedData.filter((v, i, a) =>
+      i === 0 || v.time !== a[i - 1].time
+    );
+
+    candleSeriesRef.current.setData(uniqueData);
+
+    // Calculate MAs
+    if (ma20SeriesRef.current) {
+      if (showMA.ma20) {
+        ma20SeriesRef.current.setData(calculateSMA(uniqueData, 20));
+      } else {
+        ma20SeriesRef.current.setData([]);
+      }
     }
 
-    // Draw hover line
-    if (hoverData) {
-      const hx = x(hoverData.time);
-      ctx.strokeStyle = 'rgba(255,255,255,0.3)';
-      ctx.setLineDash([5, 5]);
-      ctx.beginPath();
-      ctx.moveTo(hx, padding.top);
-      ctx.lineTo(hx, padding.top + chartHeight);
-      ctx.stroke();
-      ctx.setLineDash([]);
+    if (ma50SeriesRef.current) {
+      if (showMA.ma50) {
+        ma50SeriesRef.current.setData(calculateSMA(uniqueData, 50));
+      } else {
+        ma50SeriesRef.current.setData([]);
+      }
     }
 
-  }, [data, hoverData]);
+    // Fit content after first load
+    if (data.length > 0 && uniqueData.length > 0) {
+      chartRef.current?.timeScale().fitContent();
+    }
+  }, [data, showMA]);
 
-  const handleMouseMove = (e: React.MouseEvent<HTMLCanvasElement>) => {
-    if (!canvasRef.current || data.length === 0) return;
-    
-    const rect = canvasRef.current.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const padding = { left: 10, right: 60 };
-    const chartWidth = rect.width - padding.left - padding.right;
-    
-    const ratio = (x - padding.left) / chartWidth;
-    const index = Math.floor(ratio * data.length);
-    const clampedIndex = Math.max(0, Math.min(data.length - 1, index));
-    
-    setHoverData(data[clampedIndex]);
-  };
-
-  const handleMouseLeave = () => setHoverData(null);
-
-  const ranges: ('1d' | '7d' | '30d' | 'all')[] = ['1d', '7d', '30d', 'all'];
+  const ranges: ("1d" | "7d" | "30d" | "all")[] = ["1d", "7d", "30d", "all"];
 
   return (
-    <Card className="overflow-hidden">
-      <CardHeader className="pb-2">
+    <Card className="overflow-hidden glass-panel flex flex-col">
+      <CardHeader className="pb-2 shrink-0 border-b border-border/40">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1 bg-muted/50 p-1 rounded-lg">
             {ranges.map((r) => (
               <Button
                 key={r}
-                variant={range === r ? 'default' : 'ghost'}
+                variant={range === r ? "secondary" : "ghost"}
                 size="sm"
                 onClick={() => onRangeChange?.(r)}
-                className="text-xs"
+                className={`text-xs h-7 px-3 ${range === r ? 'shadow-sm bg-background' : 'text-muted-foreground'}`}
               >
-                {r === 'all' ? 'All' : r}
+                {r === "all" ? "All" : r.toUpperCase()}
               </Button>
             ))}
           </div>
+
           <div className="flex items-center gap-2">
             <Button
-              variant={showMA.ma20 ? 'default' : 'outline'}
+              variant={showMA.ma20 ? "secondary" : "outline"}
               size="sm"
-              onClick={() => setShowMA(p => ({ ...p, ma20: !p.ma20 }))}
-              className="text-xs"
+              onClick={() => setShowMA((p) => ({ ...p, ma20: !p.ma20 }))}
+              className={`text-xs h-7 border-blue-500/20 ${showMA.ma20 ? 'text-blue-500 bg-blue-500/10 hover:bg-blue-500/20' : 'text-muted-foreground hover:bg-blue-500/5 hover:text-blue-500'}`}
             >
               MA20
             </Button>
             <Button
-              variant={showMA.ma50 ? 'default' : 'outline'}
+              variant={showMA.ma50 ? "secondary" : "outline"}
               size="sm"
-              onClick={() => setShowMA(p => ({ ...p, ma50: !p.ma50 }))}
-              className="text-xs"
+              onClick={() => setShowMA((p) => ({ ...p, ma50: !p.ma50 }))}
+              className={`text-xs h-7 border-amber-500/20 ${showMA.ma50 ? 'text-amber-500 bg-amber-500/10 hover:bg-amber-500/20' : 'text-muted-foreground hover:bg-amber-500/5 hover:text-amber-500'}`}
             >
               MA50
             </Button>
           </div>
         </div>
       </CardHeader>
-      <CardContent className="p-0">
+
+      <CardContent className="p-0 grow relative min-h-[350px] h-[350px]">
         {isLoading && data.length === 0 ? (
-          <div className="h-[400px] flex items-center justify-center">
-            <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
+          <div className="absolute inset-0 flex items-center justify-center bg-background/50 backdrop-blur-sm z-10">
+            <Loader2 className="w-8 h-8 animate-spin text-primary/50" />
           </div>
-        ) : (
-          <div className="relative">
-            <canvas
-              ref={canvasRef}
-              className="w-full h-[400px] cursor-crosshair"
-              onMouseMove={handleMouseMove}
-              onMouseLeave={handleMouseLeave}
-              role="img"
-              aria-label={`Price chart for ${address} on ${chain}. Last price $${data[data.length - 1]?.close.toFixed(2)}`}
-            />
-            {hoverData && (
-              <div className="absolute top-4 left-4 bg-card/90 backdrop-blur border rounded-lg p-3 text-xs space-y-1 shadow-lg">
-                <div className="text-muted-foreground">{new Date(hoverData.time).toLocaleString()}</div>
-                <div className="grid grid-cols-2 gap-x-4 gap-y-1">
-                  <span className="text-muted-foreground">Open:</span>
-                  <span className="font-mono">${hoverData.open.toFixed(4)}</span>
-                  <span className="text-muted-foreground">High:</span>
-                  <span className="font-mono text-green-500">${hoverData.high.toFixed(4)}</span>
-                  <span className="text-muted-foreground">Low:</span>
-                  <span className="font-mono text-red-500">${hoverData.low.toFixed(4)}</span>
-                  <span className="text-muted-foreground">Close:</span>
-                  <span className="font-mono">${hoverData.close.toFixed(4)}</span>
-                  <span className="text-muted-foreground">Vol:</span>
-                  <span className="font-mono">{(hoverData.volume / 1e6).toFixed(2)}M</span>
-                </div>
-              </div>
-            )}
-          </div>
-        )}
+        ) : null}
+
+        <div
+          ref={chartContainerRef}
+          className="absolute inset-0 z-0"
+          aria-label={`Price chart for ${address} on ${chain}. Last price $${data[data.length - 1]?.close?.toFixed(4) ?? '0'}`}
+        />
       </CardContent>
     </Card>
   );
+}
+
+// Simple SMA calculator
+function calculateSMA(data: { time: Time; close: number }[], period: number) {
+  const result: { time: Time; value: number }[] = [];
+  for (let i = period - 1; i < data.length; i++) {
+    let sum = 0;
+    for (let j = 0; j < period; j++) {
+      sum += data[i - j].close;
+    }
+    result.push({
+      time: data[i].time,
+      value: sum / period,
+    });
+  }
+  return result;
 }

@@ -3,7 +3,7 @@
 import { useWallet } from "@solana/wallet-adapter-react";
 import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
 import "@solana/wallet-adapter-react-ui/styles.css";
-import { useEffect, useCallback } from "react";
+import { useEffect, useCallback, useState } from "react";
 import { useWalletStore } from "@/store/useWalletStore";
 import { useUser } from "@clerk/nextjs";
 import axios from "axios";
@@ -17,9 +17,20 @@ import axios from "axios";
  */
 
 export function WalletConnectButton() {
-    const { publicKey, connected } = useWallet();
-    const { setWallet, disconnectWallet } = useWalletStore();
+    const { publicKey, connected, connecting } = useWallet();
+    const { setWallet, disconnectWallet, setConnecting } = useWalletStore();
     const { user, isLoaded } = useUser();
+
+    const [mounted, setMounted] = useState(false);
+
+    useEffect(() => {
+        setMounted(true);
+    }, []);
+
+    // Sync connecting state separately
+    useEffect(() => {
+        setConnecting(connecting);
+    }, [connecting, setConnecting]);
 
     const syncWithBackend = useCallback(async (address: string) => {
         try {
@@ -31,14 +42,28 @@ export function WalletConnectButton() {
     }, []);
 
     useEffect(() => {
-        if (connected && publicKey && isLoaded && user) {
+        if (connected && publicKey) {
             const address = publicKey.toBase58();
             setWallet(address);
-            syncWithBackend(address);
-        } else if (!connected) {
+
+            // Only sync with backend if we have a Clerk user session
+            if (isLoaded && user) {
+                syncWithBackend(address);
+            }
+        } else if (!connected && !connecting) {
             disconnectWallet();
         }
-    }, [connected, publicKey, isLoaded, user, setWallet, disconnectWallet, syncWithBackend]);
+    }, [connected, connecting, publicKey, isLoaded, user, setWallet, disconnectWallet, syncWithBackend]);
+
+    if (!mounted) {
+        return (
+            <div className="wallet-adapter-btn-container">
+                <button className="wallet-adapter-button wallet-adapter-button-trigger !bg-primary hover:!bg-primary/90 !rounded-lg !h-10 !px-4 !py-2 !transition-colors !text-sm !font-medium" style={{ pointerEvents: 'none' }}>
+                    Connect Wallet
+                </button>
+            </div>
+        );
+    }
 
     return (
         <div className="wallet-adapter-btn-container">

@@ -1,9 +1,9 @@
 import { NextRequest } from 'next/server';
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '@/lib/prisma';
 import { sentinelEngine } from '@/services/sentinelEngine';
 import { sentinelAI } from '@/services/ai/sentinelAI';
 
-const prisma = new PrismaClient();
+
 
 export async function GET(
   request: NextRequest,

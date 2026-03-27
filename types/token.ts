@@ -1,4 +1,4 @@
-export interface  TokenMeta {
+export interface TokenMeta {
   chain: string;
   address: string;
   symbol: string;
@@ -71,6 +71,22 @@ export interface TradeRoute {
   jitoProtected: boolean;
   steps: { dex: string; from: string; to: string; percent: number }[];
   estimatedTimeMs: number;
+}
+
+export interface TradeQuoteResponse {
+  inAmount: string;
+  outAmount: string;
+  priceImpact: number;
+  route: any; // Raw Jupiter route plan
+  estimatedFees: number;
+  // Fee routing strategy – tells the swap API which side to collect fees from
+  feeMint: string | null;          // The mint whose referral token account should receive the fee
+  feeStrategy: 'output' | 'input' | 'none'; // 'output' = standard Jupiter referral, 'input' = collect from input token
+  // Sentinel Intelligence Layer
+  sentinelScore: number;
+  safetyBand: "safe" | "caution" | "danger";
+  liquidityScore: number;
+  mevRisk: "low" | "medium" | "high";
 }
 
 export interface SocialPost {

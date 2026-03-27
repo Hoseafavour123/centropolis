@@ -5,6 +5,9 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { BrainCircuit, TrendingUp, TrendingDown, Minus, Activity, Shield, Users, Droplets } from 'lucide-react';
 import { AISummary } from '@/types/token';
+import { useTokenMeta } from '@/hooks/useTokenMeta';
+import { useHolders } from '@/hooks/useHolders';
+import { usePools } from '@/hooks/usePools';
 
 const fetchAISummary = async (chain: string, address: string): Promise<AISummary> => {
   const res = await fetch(`/api/sentinel/result?token=${address}&chain=${chain}`);
@@ -23,6 +26,42 @@ export function OverviewTab({ chain, address }: OverviewTabProps) {
     queryFn: () => fetchAISummary(chain, address),
     staleTime: 5 * 60 * 1000,
   });
+
+  const { data: tokenMeta, isLoading: isTokenMetaLoading } = useTokenMeta(chain, address);
+  const { data: holders, isLoading: isHoldersLoading } = useHolders(chain, address, 20);
+  const { data: pools, isLoading: isPoolsLoading } = usePools(chain, address);
+
+  // Contract Security
+  const isImmutable = tokenMeta?.contractFlags?.includes('immutable') ?? false;
+  const securityStatus = isImmutable ? 'good' : 'warning';
+  const securityValue = isImmutable ? 'Immutable' : 'Mutable';
+  const securitySubtext = isImmutable ? 'No mint or freeze authority' : 'Contract has authorities';
+
+  // Holder Distribution
+  const top20Percentage = holders ? holders.reduce((sum, h) => sum + h.percentage, 0) : 0;
+  let holderStatus: 'good' | 'warning' | 'bad' = 'good';
+  let holderSubtext = 'Low concentration';
+  if (top20Percentage > 50) {
+    holderStatus = 'bad';
+    holderSubtext = 'High concentration';
+  } else if (top20Percentage > 20) {
+    holderStatus = 'warning';
+    holderSubtext = 'Moderate concentration';
+  }
+
+  // Liquidity Health
+  const totalLiquidityUsd = pools ? pools.reduce((sum, p) => sum + p.liquidityUsd, 0) : 0;
+  const poolCount = pools?.length || 0;
+  let liquidityStatus: 'good' | 'warning' | 'bad' = 'good';
+  if (totalLiquidityUsd < 100000) liquidityStatus = 'bad';
+  else if (totalLiquidityUsd < 1000000) liquidityStatus = 'warning';
+
+  const formatCompactNumber = (num: number) => {
+    if (num < 1000) return num.toFixed(0);
+    if (num < 1000000) return (num / 1000).toFixed(1) + 'K';
+    if (num < 1000000000) return (num / 1000000).toFixed(1) + 'M';
+    return (num / 1000000000).toFixed(1) + 'B';
+  };
 
   return (
     <div className="space-y-6">
@@ -67,27 +106,39 @@ export function OverviewTab({ chain, address }: OverviewTabProps) {
 
       {/* Quick Metrics Grid */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <MetricCard 
-          icon={Shield} 
-          label="Contract Security" 
-          value="Immutable"
-          subtext="No mint or freeze authority"
-          status="good"
-        />
-        <MetricCard 
-          icon={Users} 
-          label="Holder Distribution" 
-          value="23% Top 20"
-          subtext="Moderate concentration"
-          status="warning"
-        />
-        <MetricCard 
-          icon={Droplets} 
-          label="Liquidity Health" 
-          value="$314M"
-          subtext="Deep across 3 major DEXs"
-          status="good"
-        />
+        {isTokenMetaLoading ? (
+          <div className="animate-pulse bg-muted rounded-xl h-24" />
+        ) : (
+          <MetricCard
+            icon={Shield}
+            label="Contract Security"
+            value={securityValue}
+            subtext={securitySubtext}
+            status={securityStatus}
+          />
+        )}
+        {isHoldersLoading ? (
+          <div className="animate-pulse bg-muted rounded-xl h-24" />
+        ) : (
+          <MetricCard
+            icon={Users}
+            label="Holder Distribution"
+            value={`${top20Percentage.toFixed(1)}% Top 20`}
+            subtext={holderSubtext}
+            status={holderStatus}
+          />
+        )}
+        {isPoolsLoading ? (
+          <div className="animate-pulse bg-muted rounded-xl h-24" />
+        ) : (
+          <MetricCard
+            icon={Droplets}
+            label="Liquidity Health"
+            value={`$${formatCompactNumber(totalLiquidityUsd)}`}
+            subtext={`Deep across ${poolCount} DEXs`}
+            status={liquidityStatus}
+          />
+        )}
       </div>
     </div>
   );
@@ -110,16 +161,16 @@ function SentimentBadge({ sentiment }: { sentiment: string }) {
   );
 }
 
-function MetricCard({ 
-  icon: Icon, 
-  label, 
-  value, 
-  subtext, 
-  status 
-}: { 
-  icon: any; 
-  label: string; 
-  value: string; 
+function MetricCard({
+  icon: Icon,
+  label,
+  value,
+  subtext,
+  status
+}: {
+  icon: any;
+  label: string;
+  value: string;
   subtext: string;
   status: 'good' | 'warning' | 'bad';
 }) {

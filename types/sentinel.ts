@@ -84,7 +84,7 @@ export type SSEMessage =
 
 export interface EvidenceItem {
   id: string;
-  type: 'onchain' | 'tx' | 'social' | 'holder' | 'rug';
+  type: 'onchain' | 'tx' | 'social' | 'holder' | 'rug' | 'market';
   title: string;
   timestamp: string;
   content: string;

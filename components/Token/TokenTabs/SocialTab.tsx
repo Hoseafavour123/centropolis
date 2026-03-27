@@ -51,7 +51,7 @@ export function SocialTab({ chain, address }: SocialTabProps) {
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 hidden">
       {posts?.map((post) => {
         const PlatformIcon = platformIcons[post.platform];
         const SentimentIcon = sentimentIcons[post.sentiment];

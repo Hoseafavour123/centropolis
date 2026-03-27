@@ -5,7 +5,7 @@
 import { EvidenceItem } from '@/types/sentinel';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Database, Users, MessageSquare, FileText, ShieldCheck } from 'lucide-react';
+import { Database, Users, MessageSquare, FileText, ShieldCheck, TrendingUp, Info } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface EvidenceCardProps {
@@ -18,7 +18,8 @@ const typeIcons = {
   holder: Users,
   social: MessageSquare,
   tx: FileText,
-  rug: ShieldCheck, // Add this
+  rug: ShieldCheck,
+  market: TrendingUp, // Add this
 };
 
 const typeColors = {
@@ -26,21 +27,23 @@ const typeColors = {
   holder: 'bg-purple-500/10 text-purple-500',
   social: 'bg-green-500/10 text-green-500',
   tx: 'bg-orange-500/10 text-orange-500',
-  rug: 'bg-green-500/10 text-green-500 border-green-500/30', // Add this
+  rug: 'bg-red-500/10 text-red-500 border-red-500/30',
+  market: 'bg-indigo-500/10 text-indigo-500', // Add this
 };
 
 export function EvidenceCard({ evidence, onOpenDetail }: EvidenceCardProps) {
-  const Icon = typeIcons[evidence.type];
-  
+  const Icon = typeIcons[evidence.type as keyof typeof typeIcons] || Info;
+  const colorClass = typeColors[evidence.type as keyof typeof typeColors] || 'bg-slate-500/10 text-slate-500';
+
   return (
-    <Card 
+    <Card
       className="cursor-pointer hover:border-primary/50 transition-all duration-200 group"
       onClick={() => onOpenDetail?.(evidence.id)}
     >
       <CardHeader className="pb-2">
         <div className="flex items-start justify-between">
           <div className="flex items-center gap-2">
-            <div className={cn("p-1.5 rounded-md", typeColors[evidence.type])}>
+            <div className={cn("p-1.5 rounded-md", colorClass)}>
               <Icon className="w-4 h-4" />
             </div>
             <Badge variant="secondary" className="text-[10px] uppercase">{evidence.type}</Badge>

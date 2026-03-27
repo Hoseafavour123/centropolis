@@ -27,11 +27,12 @@ export function Providers({ children }: { children: React.ReactNode }) {
     },
   }));
 
-  // The network can be set to 'devnet', 'testnet', or 'mainnet-beta'.
-  const network = WalletAdapterNetwork.Mainnet;
-
-  // You can also provide a custom RPC endpoint.
-  const endpoint = useMemo(() => clusterApiUrl(network), [network]);
+  // Use the dedicated Helius RPC URL to prevent 403 Access Forbidden errors
+  // that occur when the public clusterApiUrl rate-limits transaction sending.
+  const endpoint = useMemo(
+    () => process.env.NEXT_PUBLIC_SOLANA_RPC || 'https://mainnet.helius-rpc.com/?api-key=f5dc817d-eaf2-4a0b-93ff-1836696fa796',
+    []
+  );
 
   const wallets = useMemo(
     () => [

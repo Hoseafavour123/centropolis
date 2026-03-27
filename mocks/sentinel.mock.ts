@@ -1,10 +1,10 @@
-import { 
-  SentinelAnalyzeStart, 
-  SentinelResult, 
-  SSEMessage, 
+import {
+  SentinelAnalyzeStart,
+  SentinelResult,
+  SSEMessage,
   RugDetectionResult,
   Recommendation,
-  RugIndicator 
+  RugIndicator
 } from '@/types/sentinel';
 
 export const mockAnalysisStart: SentinelAnalyzeStart = {
@@ -152,6 +152,7 @@ const createRecommendation = (score: number): Recommendation => {
 export const mockSentinelResult: SentinelResult = {
   analysisId: 'sent-demo-123',
   summary: 'SOL demonstrates strong liquidity depth ($314M) and positive smart money inflows. However, top 20 holders control 23% of supply, indicating moderate concentration risk.',
+  technicalExplanation: 'The token contract is immutable with no mint or freeze authorities detected. Burned liquidity pool reduces rug pull vector substantially. Smart money volume divergence suggests institutional accumulation. On-chain analysis indicates a healthy distribution profile despite moderate concentration in top wallets.',
   finalScore: 72,
   safetyBand: 'safe',
   metrics: {
@@ -174,7 +175,7 @@ export const mockSentinelResult: SentinelResult = {
       title: 'Rug Detection: CLEAR',
       timestamp: new Date().toISOString(),
       content: 'All 8 security indicators passed. No mint, freeze, or upgrade authorities present. LP tokens burned. Contract is immutable.',
-      metadata: { 
+      metadata: {
         scanVersion: '2.4.1',
         indicatorsPassed: 8,
         indicatorsFailed: 0,
@@ -187,8 +188,8 @@ export const mockSentinelResult: SentinelResult = {
       title: 'Liquidity Lock Verified',
       timestamp: new Date().toISOString(),
       content: 'Liquidity tokens burned at block 236,204,371. 95% of LP locked for 2 years via Streamflow protocol.',
-      metadata: { 
-        txHash: '5xKp...9zLm', 
+      metadata: {
+        txHash: '5xKp...9zLm',
         block: 236204371,
         lockDuration: '2 years',
         percentLocked: 95,
@@ -201,7 +202,7 @@ export const mockSentinelResult: SentinelResult = {
       title: 'Whale Accumulation Detected',
       timestamp: new Date().toISOString(),
       content: 'Top 5 non-exchange wallets increased holdings by 12% ($3.7M) in last 24h. Smart money signal bullish.',
-      metadata: { 
+      metadata: {
         wallets: ['7x9vB2mN...4pQ', '3aK8wX...9zL', '9mN2pQ...7xB'],
         avgIncrease: '12%',
         totalValue: 3700000,
@@ -214,7 +215,7 @@ export const mockSentinelResult: SentinelResult = {
       title: 'Social Sentiment Shift',
       timestamp: new Date().toISOString(),
       content: 'Twitter sentiment score increased from 0.34 to 0.67 in 6 hours. 12,400 new mentions. Influencer @solana_whale posted positive thread.',
-      metadata: { 
+      metadata: {
         platform: 'Twitter',
         mentionCount: 12400,
         sentimentScore: 0.67,
@@ -228,7 +229,7 @@ export const mockSentinelResult: SentinelResult = {
       title: 'Institutional Inflow',
       timestamp: new Date().toISOString(),
       content: 'Jump Trading wallet deposited $1.2M USDC to Raydium SOL-USDC pool. Followed by $890K purchase across 3 DEXs.',
-      metadata: { 
+      metadata: {
         institution: 'Jump Trading',
         value: 1200000,
         venues: ['Raydium', 'Orca', 'Meteora'],
@@ -247,20 +248,20 @@ export const mockSentinelResult: SentinelResult = {
 
 // SSE Stream Simulator with Rug Detection & Recommendation
 export function createMockStream(
-  onMessage: (msg: SSEMessage) => void, 
+  onMessage: (msg: SSEMessage) => void,
   onComplete: () => void
 ) {
   const analysisId = 'sent-' + Math.random().toString(36).substr(2, 9);
-  
+
   const rugResult = createRugDetection();
   const recResult = createRecommendation(72);
-  
+
   const chunks: SSEMessage[] = [
     { type: 'chunk', payload: { text: '🔍 Initializing Sentinel v2.4.1...\n' } },
     { type: 'chunk', payload: { text: '⏳ Establishing secure RPC connection...\n' } },
     { type: 'chunk', payload: { text: '✅ Connected to Helius dedicated node\n' } },
     { type: 'chunk', payload: { text: '📡 Block height: 236,204,371 | Latency: 12ms\n\n' } },
-    
+
     // RUG DETECTION PHASE
     { type: 'chunk', payload: { text: '🛡️  STARTING RUG DETECTION PROTOCOL\n' } },
     { type: 'chunk', payload: { text: '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n' } },
@@ -278,13 +279,13 @@ export function createMockStream(
     { type: 'chunk', payload: { text: '95% BURNED ✅\n' } },
     { type: 'chunk', payload: { text: '👤 Checking ownership renouncement... ' } },
     { type: 'chunk', payload: { text: 'RENOUNCED ✅\n\n' } },
-    
+
     { type: 'chunk', payload: { text: '🎯 RUG DETECTION RESULT: ' } },
     { type: 'chunk', payload: { text: 'CLEAR 🟢\n' } },
     { type: 'chunk', payload: { text: `   Confidence: ${rugResult.confidence}%\n` } },
     { type: 'chunk', payload: { text: `   Risk Level: ${rugResult.riskLevel.toUpperCase()}\n` } },
     { type: 'chunk', payload: { text: `   Indicators Passed: 8/8\n\n` } },
-    
+
     // FUNDAMENTAL ANALYSIS
     { type: 'chunk', payload: { text: '📊 ANALYZING FUNDAMENTALS\n' } },
     { type: 'chunk', payload: { text: '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n' } },
@@ -295,35 +296,37 @@ export function createMockStream(
     { type: 'chunk', payload: { text: '   ─────────────────────────────\n' } },
     { type: 'chunk', payload: { text: '   • TOTAL DEPTH:       $314M (Excellent)\n' } },
     { type: 'chunk', payload: { text: '   • Health Score:      88/100\n\n' } },
-    
+
     { type: 'chunk', payload: { text: '🐋 Holder Distribution:\n' } },
     { type: 'chunk', payload: { text: '   • Total Holders:     1,247,893\n' } },
     { type: 'chunk', payload: { text: '   • Top 20 Wallets:    23.0% (Moderate)\n' } },
     { type: 'chunk', payload: { text: '   • Gini Coefficient:  0.67\n' } },
     { type: 'chunk', payload: { text: '   • Concentration:     Medium Risk ⚠️\n\n' } },
-    
-    { type: 'meta', payload: { 
-      blockHeight: 236204371, 
-      socialScrapeAt: new Date().toISOString(),
-      dataSources: [
-        { source: 'Helius', timestamp: new Date().toISOString() }
-      ] 
-    }},
-    
+
+    {
+      type: 'meta', payload: {
+        blockHeight: 236204371,
+        socialScrapeAt: new Date().toISOString(),
+        dataSources: [
+          { source: 'Helius', timestamp: new Date().toISOString() }
+        ]
+      }
+    },
+
     // SMART MONEY
     { type: 'chunk', payload: { text: '💰 Smart Money Intelligence:\n' } },
     { type: 'chunk', payload: { text: '   • Net Inflow 24h:    +$3,700,000\n' } },
     { type: 'chunk', payload: { text: '   • New Smart Buyers:  47 wallets\n' } },
     { type: 'chunk', payload: { text: '   • Avg Position Δ:    +12%\n' } },
     { type: 'chunk', payload: { text: '   • Signal Strength:   BULLISH 📈\n\n' } },
-    
+
     // SOCIAL SENTIMENT
     { type: 'chunk', payload: { text: '📱 Social Sentiment Analysis:\n' } },
     { type: 'chunk', payload: { text: '   • Twitter Mentions:  +340% (12,400)\n' } },
     { type: 'chunk', payload: { text: '   • Sentiment Score:   0.67 → 0.89\n' } },
     { type: 'chunk', payload: { text: '   • Key Influencers:   @solana_whale (+)\n' } },
     { type: 'chunk', payload: { text: '   • Trending:          #SOL #SolanaSeason\n\n' } },
-    
+
     // SCORE CALCULATION
     { type: 'chunk', payload: { text: '⚖️  COMPUTING FINAL SAFETY SCORE\n' } },
     { type: 'chunk', payload: { text: '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n' } },
@@ -334,7 +337,7 @@ export function createMockStream(
     { type: 'chunk', payload: { text: '   Social Momentum:      85/100  🟢\n' } },
     { type: 'chunk', payload: { text: '   ─────────────────────────────\n' } },
     { type: 'chunk', payload: { text: '   WEIGHTED SCORE:       72/100  🟢 SAFE\n\n' } },
-    
+
     // RECOMMENDATION
     { type: 'chunk', payload: { text: '🎯 SENTINEL RECOMMENDATION\n' } },
     { type: 'chunk', payload: { text: '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n' } },
@@ -342,40 +345,43 @@ export function createMockStream(
     { type: 'chunk', payload: { text: `   CONFIDENCE: ${recResult.confidence}%\n\n` } },
     { type: 'chunk', payload: { text: `   "${recResult.summary}"\n\n` } },
     { type: 'chunk', payload: { text: `   ${recResult.detailedAdvice}\n\n` } },
-    
+
     { type: 'chunk', payload: { text: '📍 ENTRY STRATEGY:\n' } },
     { type: 'chunk', payload: { text: `   Conservative Entry:  $${recResult.entryPoints?.conservative}\n` } },
     { type: 'chunk', payload: { text: `   Aggressive Entry:    $${recResult.entryPoints?.aggressive}\n` } },
     { type: 'chunk', payload: { text: `   Stop Loss:           $${recResult.stopLoss}\n` } },
     { type: 'chunk', payload: { text: `   Take Profits:        $${recResult.takeProfit?.join(' → $')}\n` } },
     { type: 'chunk', payload: { text: `   Time Horizon:        ${recResult.timeHorizon.toUpperCase()}\n\n` } },
-    
+
     { type: 'chunk', payload: { text: '✅ Analysis complete. Report generated.\n' } },
-    
-    { type: 'done', payload: { 
-      summary: mockSentinelResult.summary,
-      finalScore: 72,
-      metrics: mockSentinelResult.metrics,
-      evidence: mockSentinelResult.evidence,
-      rugDetection: rugResult,
-      recommendation: recResult,
-    }},
+
+    {
+      type: 'done', payload: {
+        summary: mockSentinelResult.summary,
+        technicalExplanation: mockSentinelResult.technicalExplanation,
+        finalScore: 72,
+        metrics: mockSentinelResult.metrics,
+        evidence: mockSentinelResult.evidence,
+        rugDetection: rugResult,
+        recommendation: recResult,
+      }
+    },
   ];
 
   let index = 0;
-  
+
   const sendNextChunk = () => {
     if (index >= chunks.length) {
       onComplete();
       return;
     }
-    
+
     onMessage(chunks[index]);
     index++;
-    
+
     const delay = Math.random() * 300 + 150; // 150-450ms for faster feel
     setTimeout(sendNextChunk, delay);
   };
-  
+
   setTimeout(sendNextChunk, 300);
 }

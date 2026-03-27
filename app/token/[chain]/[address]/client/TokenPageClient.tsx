@@ -13,6 +13,7 @@ import { Navbar } from '@/components/Shared/Navbar';
 import { Sidebar } from '@/components/Shared/Sidebar';
 import { Toaster } from '@/components/ui/toast/toaster';
 import { useToast } from '@/hooks/use-toast';
+import { useRightPanelStore } from '@/store/useRightPanelStore';
 
 interface TokenPageClientProps {
   chain: string;
@@ -31,6 +32,39 @@ export function TokenPageClient({ chain, address, initialMeta }: TokenPageClient
 
   // Use initial data while loading
   const displayMeta = meta || initialMeta;
+  const setRightPanel = useRightPanelStore((state) => state.setComponent);
+
+  // Set Right Panel
+  useEffect(() => {
+    if (displayMeta) {
+      setRightPanel(
+        <RightTradePanel
+          chain={chain}
+          fromToken="SOL"
+          toToken={displayMeta.symbol}
+          toAddress={address}
+          amountUsd="0.1"
+        />
+      );
+    }
+    return () => setRightPanel(null);
+  }, [displayMeta, chain, setRightPanel]);
+
+  // Fetch initial watchlist status
+  useEffect(() => {
+    const checkWatchlist = async () => {
+      try {
+        const res = await fetch(`/api/watchlist?chain=${chain}&address=${address}`);
+        if (res.ok) {
+          const data = await res.json();
+          setIsWatchlisted(!!data.isWatchlisted);
+        }
+      } catch (err) {
+        console.error("Failed to fetch watchlist status", err);
+      }
+    };
+    checkWatchlist();
+  }, [chain, address]);
 
   useEffect(() => {
     sendAnalytics('token_viewed', {
@@ -40,18 +74,47 @@ export function TokenPageClient({ chain, address, initialMeta }: TokenPageClient
     });
   }, [chain, address, initialMeta, sendAnalytics]);
 
-  const handleAddToWatchlist = () => {
-    setIsWatchlisted(!isWatchlisted);
+  const handleAddToWatchlist = async () => {
+    // Optimistic update
+    const previousState = isWatchlisted;
+    const newState = !isWatchlisted;
+    setIsWatchlisted(newState);
+
     sendAnalytics('add_to_watchlist', {
       chain,
       address,
-      action: isWatchlisted ? 'remove' : 'add',
+      action: newState ? 'add' : 'remove',
     });
-    
+
     toast({
-      title: isWatchlisted ? 'Removed from Watchlist' : 'Added to Watchlist',
-      description: `${displayMeta?.symbol || 'Token'} ${isWatchlisted ? 'removed from' : 'added to'} your watchlist`,
+      title: newState ? 'Added to Watchlist' : 'Removed from Watchlist',
+      description: `${displayMeta?.symbol || 'Token'} ${newState ? 'added to' : 'removed from'} your watchlist`,
     });
+
+    try {
+      const res = await fetch('/api/watchlist', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ chain, address })
+      });
+      if (!res.ok) {
+        // Revert on failure
+        setIsWatchlisted(previousState);
+        toast({
+          title: 'Error',
+          description: 'Failed to update watchlist server-side. Change reverted.',
+          variant: 'destructive', // Assuming we have a destructive variant, else it functions as default
+        });
+      }
+    } catch (err) {
+      // Revert on network error
+      setIsWatchlisted(previousState);
+      toast({
+        title: 'Error',
+        description: 'Network error updating watchlist. Change reverted.',
+        variant: 'destructive',
+      });
+    }
   };
 
   const handleOpenTrade = () => {
@@ -61,7 +124,7 @@ export function TokenPageClient({ chain, address, initialMeta }: TokenPageClient
       routeId: 'direct',
       provider: 'Jupiter',
     });
-    
+
     router.push(`/trade?chain=${chain}&to=${address}&prefillFrom=token`);
   };
 
@@ -79,7 +142,7 @@ export function TokenPageClient({ chain, address, initialMeta }: TokenPageClient
         <div className="text-center space-y-4">
           <h1 className="text-2xl font-bold">Token Not Found</h1>
           <p className="text-muted-foreground">We couldn't find data for this token.</p>
-          <button 
+          <button
             onClick={() => router.push('/')}
             className="text-primary hover:underline"
           >
@@ -92,9 +155,7 @@ export function TokenPageClient({ chain, address, initialMeta }: TokenPageClient
 
   return (
     <div className="min-h-screen bg-background">
-      {/* <Navbar />
-      <Sidebar />
-       */}
+
       <main className="">
         <div className="container p-4 ">
           <div className="grid grid-cols-1 xl:grid-cols-8 gap-5">
@@ -110,15 +171,14 @@ export function TokenPageClient({ chain, address, initialMeta }: TokenPageClient
                   <QuickStat label="Volume (24h)" value={`$${((displayMeta.volume24h || 0) / 1e9).toFixed(2)}B`} />
                   <QuickStat label="Safety Score" value={`${displayMeta.safetyScore}/100`} />
                 </div>
-                
+
                 <div className="pt-4 border-t space-y-2">
                   <div className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Asset Filters</div>
-                  <FilterBadge label="Developer" checked />
-                  <FilterBadge label="Whales" checked subtext="100%" />
-                  <FilterBadge label="Locked" checked />
+                  <FilterBadge label="Locked" checked={displayMeta.contractFlags?.includes('immutable') || false} />
+                  <FilterBadge label="Developer" checked={displayMeta.contractFlags?.includes('mintable') || displayMeta.contractFlags?.includes('freezable') || false} />
                 </div>
-                
-                <button 
+
+                <button
                   onClick={handleAddToWatchlist}
                   className="w-full p-2 rounded-lg bg-muted hover:bg-muted/80 transition-colors text-sm font-medium flex items-center justify-center gap-2"
                 >
@@ -135,32 +195,20 @@ export function TokenPageClient({ chain, address, initialMeta }: TokenPageClient
                 onAddToWatchlist={handleAddToWatchlist}
                 isWatchlisted={isWatchlisted}
               />
-              
+
               <PriceChart
                 chain={chain}
                 address={address}
                 range={chartRange}
                 onRangeChange={setChartRange}
               />
-              
-              <TokenTabs chain={chain} address={address} />
-            </div>
 
-            {/* Right Trade Panel */}
-            <div className="hidden xl:col-span-3">
-              <div className="sticky top-24">
-                <RightTradePanel
-                  chain={chain}
-                  fromToken="USDC"
-                  toToken={displayMeta.symbol}
-                  amountUsd="1000"
-                />
-              </div>
+              <TokenTabs chain={chain} address={address} />
             </div>
           </div>
         </div>
       </main>
-      
+
       <Toaster />
     </div>
   );
@@ -168,7 +216,7 @@ export function TokenPageClient({ chain, address, initialMeta }: TokenPageClient
 
 function QuickStat({ label, value, change }: { label: string; value: string; change?: number }) {
   const isPositive = (change || 0) >= 0;
-  
+
   return (
     <div>
       <div className="text-xs text-muted-foreground">{label}</div>

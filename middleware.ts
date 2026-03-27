@@ -4,6 +4,11 @@ const isPublicRoute = createRouteMatcher([
     '/sign-in(.*)',
     '/sign-up(.*)',
     '/api/dashboard/(.*)', // public market data – no user info exposed
+    '/api/holders/(.*)',   // public holder data
+    '/api/liquidity/(.*)', // public liquidity data
+    '/token/(.*)',         // token detail pages
+    '/api/token/(.*)',     // token metadata API
+    '/api/trade/(.*)',     // trade quote API
 ])
 
 export default clerkMiddleware(async (auth, req) => {
