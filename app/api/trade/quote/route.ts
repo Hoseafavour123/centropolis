@@ -53,14 +53,23 @@ export async function GET(request: NextRequest) {
       feeStrategy = 'input';
     }
 
-    // Only pass platformFeeBps when we have a fee account to collect into
-    const platformFeeBps = feeMint ? PLATFORM_FEE_BPS : undefined;
+    // Only pass platformFeeBps to Jupiter if the fee is being collected on the OUTPUT token
+    const platformFeeBps = feeStrategy === 'output' ? PLATFORM_FEE_BPS : undefined;
+
+    let swapAmountInAtoms = fullAmountInAtoms;
+    let manualFeeAtoms: string | undefined = undefined;
+
+    if (feeStrategy === 'input') {
+      // Manual fee deduction for ExactIn swaps when we can't use Jupiter's output fee
+      swapAmountInAtoms = Math.floor(fullAmountInAtoms * 0.85);
+      manualFeeAtoms = (fullAmountInAtoms - swapAmountInAtoms).toString();
+    }
 
     // Get raw Jupiter quote
     const rawQuote = await jupiterTokenService.getRawQuote(
       inputMint,
       outputMint,
-      fullAmountInAtoms,
+      swapAmountInAtoms,
       slippageBps,
       platformFeeBps
     );
@@ -113,11 +122,12 @@ export async function GET(request: NextRequest) {
       outAmount: rawQuote.outAmount,
       priceImpact: parseFloat(rawQuote.priceImpactPct) || 0,
       route: rawQuote,
-      estimatedFees: parseFloat(rawQuote.platformFee?.amount || '0'),
+      estimatedFees: platformFeeBps ? parseFloat(rawQuote.platformFee?.amount || '0') : manualFeeAtoms ? parseFloat(manualFeeAtoms) : 0,
 
       // Fee routing metadata — forwarded through the client to the swap API
       feeMint,
       feeStrategy,
+      manualFeeAtoms,
 
       sentinelScore,
       safetyBand,

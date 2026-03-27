@@ -80,8 +80,9 @@ export interface TradeQuoteResponse {
   route: any; // Raw Jupiter route plan
   estimatedFees: number;
   // Fee routing strategy – tells the swap API which side to collect fees from
-  feeMint: string | null;          // The mint whose referral token account should receive the fee
-  feeStrategy: 'output' | 'input' | 'none'; // 'output' = standard Jupiter referral, 'input' = collect from input token
+  feeMint: string | null;          // The mint whose parameter/account receives the fee
+  feeStrategy: 'output' | 'input' | 'none'; // 'output' = standard Jupiter referral, 'input' = manual pre-swap transfer
+  manualFeeAtoms?: string;         // Present if feeStrategy === 'input'
   // Sentinel Intelligence Layer
   sentinelScore: number;
   safetyBand: "safe" | "caution" | "danger";

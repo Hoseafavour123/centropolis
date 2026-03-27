@@ -115,6 +115,7 @@ export function useTrade() {
                 slippageBps: currentQuote.route.slippageBps ?? 50,
                 feeMint: currentQuote.feeMint,
                 feeStrategy: currentQuote.feeStrategy,
+                manualFeeAtoms: currentQuote.manualFeeAtoms,
                 // Omitting raw route dump for clarity in logs, just showing fee targets
             });
 
@@ -133,6 +134,7 @@ export function useTrade() {
                     // correct Jupiter referral account (input or output side).
                     feeMint: currentQuote.feeMint,
                     feeStrategy: currentQuote.feeStrategy,
+                    manualFeeAtoms: currentQuote.manualFeeAtoms,
                 })
             });
 
