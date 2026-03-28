@@ -8,12 +8,11 @@ import { ActionsPanel } from '@/components/Sentinel/ActionsPanel';
 import { useSentinelAnalyze } from '@/hooks/useSentinelAnalyze';
 import { SentinelAnalyzeRequest, SentinelResult } from '@/types/sentinel';
 import { useGlobalStore } from '@/lib/store/globalStore';
-import { useToast } from "@/hooks/use-toast"
+import { toast } from 'sonner';
 import { useSentinelStore } from '@/store/useSentinelStore';
 
 export function SentinelPageClient() {
   const router = useRouter();
-  const { toast } = useToast();
   const { selectedChain } = useGlobalStore();
   const { startAnalysis, subscribeToStream, streamingText, status } = useSentinelAnalyze();
   const { currentAnalysis, analysisId, setCurrentAnalysis, setAnalysisId } = useSentinelStore();
@@ -31,11 +30,7 @@ export function SentinelPageClient() {
 
       // Cleanup on unmount handled by hook
     } catch (error) {
-      toast({
-        title: "Analysis Failed",
-        description: "Could not start analysis. Please try again.",
-        variant: "destructive",
-      });
+      toast.error("Could not start analysis. Please try again.");
     }
   };
 

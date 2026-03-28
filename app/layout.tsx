@@ -2,15 +2,14 @@ import { ClerkProvider } from "@clerk/nextjs";
 import type { Metadata } from "next";
 import { Inter, Geist } from "next/font/google";
 import "./globals.css";
-import { Navbar } from "@/components/Shared/Navbar";
-import { Sidebar } from "@/components/Shared/Sidebar"
 import { Providers } from "@/components/providers/Providers"; // React Query Provider
 import { ThemeProvider } from "@/components/providers/theme-provider";
-import { Toaster } from "@/components/ui/toast/toaster"
+import { Toaster } from "sonner";
 import '@solana/wallet-adapter-react-ui/styles.css';
-import { RightPanelWrapper } from "@/components/Shared/RightPanelWrapper";
+import { cn } from "@/lib/utils";
 
 const inter = Inter({ subsets: ["latin"] });
+const geist = Geist({ subsets: ['latin'], variable: '--font-sans' });
 
 export const metadata: Metadata = {
   title: "Centropolis | Web3 Trading Terminal",
@@ -30,36 +29,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             disableTransitionOnChange
           >
             <Providers>
-              <div className="min-h-screen bg-background text-foreground">
-                <Navbar />
-                <Sidebar />
-                <main className="lg:pl-64 pt-16">
-                  <div className="container p-4 lg:p-8">
-                    <div className="grid grid-cols-1 xl:grid-cols-12 gap-6">
-                      {/* Main Content Area (Left + Center) */}
-                      <div className="xl:col-span-9 space-y-6">
-                        {children}
-                      </div>
-                      {/* Right Action Panel */}
-                      <div className="xl:col-span-3">
-                        <div className="sticky top-24">
-                          <RightPanelWrapper />
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </main>
-              </div>
+              {children}
             </Providers>
           </ThemeProvider>
-          <Toaster />
+          <Toaster richColors closeButton position="top-right" />
         </body>
       </html>
     </ClerkProvider>
   );
 }
-
-// Helper to avoid import issues in the single file representation
-import { cn } from "@/lib/utils";
-
-const geist = Geist({ subsets: ['latin'], variable: '--font-sans' });

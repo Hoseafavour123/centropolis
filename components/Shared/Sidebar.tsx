@@ -10,15 +10,17 @@ import {
   Settings,
   ShieldAlert,
   Users,
+  LayoutDashboard,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 
 const navItems = [
-  { icon: TrendingUp, label: "Trending", href: "/" },
-  { icon: Activity, label: "Smart Money", href: "/smart-money" },
-  { icon: Star, label: "Watchlist", href: "/watchlist" },
+  { icon: LayoutDashboard, label: "Dashboard", href: "/dashboard" },
+  { icon: Wallet, label: "Wallet", href: "/wallet" },
+  { icon: Star, label: "Watchlist Tracker", href: "/watchlist" },
+  { icon: Activity, label: "Orders and History", href: "/orders" },
   { icon: ShieldAlert, label: "Sentinel", href: "/sentinel" },
   { icon: Users, label: "Social", href: "/social" },
 ];
@@ -55,18 +57,16 @@ export function Sidebar() {
 
         <div className="mt-auto space-y-1">
           <Link
-            href="/wallet"
-            className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
-          >
-            <Wallet className="h-4 w-4" />
-            My Wallet
-          </Link>
-          <Link
             href="/settings"
-            className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+            className={cn(
+              "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+              pathname.startsWith("/settings")
+                ? "bg-primary/10 text-primary"
+                : "text-muted-foreground hover:bg-muted hover:text-foreground",
+            )}
           >
             <Settings className="h-4 w-4" />
-            Settings
+            Settings & Billing
           </Link>
         </div>
       </div>

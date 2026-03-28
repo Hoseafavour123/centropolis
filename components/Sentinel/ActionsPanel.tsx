@@ -5,7 +5,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Download, Share2, Save, Check, Copy, AlertTriangle, ExternalLink } from 'lucide-react';
 import { useState } from 'react';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import {
   Dialog,
   DialogContent,
@@ -22,7 +22,6 @@ interface ActionsPanelProps {
 }
 
 export function ActionsPanel({ analysis, onOpenTrade, onSave }: ActionsPanelProps) {
-  const { toast } = useToast();
   const [isCopied, setIsCopied] = useState(false);
   const [showRiskModal, setShowRiskModal] = useState(false);
 
@@ -38,16 +37,9 @@ export function ActionsPanel({ analysis, onOpenTrade, onSave }: ActionsPanelProp
       link.click();
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
-      toast({
-        title: "Success",
-        description: "Report exported to JSON",
-      });
+      toast.success("Report exported to JSON");
     } catch (err) {
-      toast({
-        title: "Error",
-        description: "Failed to export report",
-        variant: "destructive",
-      });
+      toast.error("Failed to export report");
     }
   };
 
@@ -56,17 +48,10 @@ export function ActionsPanel({ analysis, onOpenTrade, onSave }: ActionsPanelProp
     try {
       await navigator.clipboard.writeText(url);
       setIsCopied(true);
-      toast({
-        title: "Link Copied",
-        description: "Analysis link copied to clipboard",
-      });
+      toast.success("Analysis link copied to clipboard");
       setTimeout(() => setIsCopied(false), 2000);
     } catch (err) {
-      toast({
-        title: "Error",
-        description: "Failed to copy link",
-        variant: "destructive",
-      });
+      toast.error("Failed to copy link");
     }
   };
 

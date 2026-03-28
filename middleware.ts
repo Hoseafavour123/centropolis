@@ -1,6 +1,7 @@
 import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server'
 
 const isPublicRoute = createRouteMatcher([
+    '/',                   // landing page
     '/sign-in(.*)',
     '/sign-up(.*)',
     '/api/dashboard/(.*)', // public market data – no user info exposed
@@ -9,6 +10,9 @@ const isPublicRoute = createRouteMatcher([
     '/token/(.*)',         // token detail pages
     '/api/token/(.*)',     // token metadata API
     '/api/trade/(.*)',     // trade quote API
+    '/wallet(.*)',         // public wallet viewer
+    '/api/wallet/(.*)',    // public wallet data
+    '/api/telemetry(.*)',  // public telemetry endpoint
 ])
 
 export default clerkMiddleware(async (auth, req) => {

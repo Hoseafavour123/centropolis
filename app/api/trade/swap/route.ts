@@ -15,8 +15,6 @@ const JUPITER_INSTRUCTIONS_URL = 'https://public.jupiterapi.com/swap-instruction
 
 export async function POST(request: NextRequest) {
     try {
-        console.log('\n[TradeSwapAPI] ---------------------------------------');
-        console.log('[TradeSwapAPI] 📥 Received swap request');
         const { userId: clerkId } = await auth();
         const body = await request.json();
 
@@ -59,7 +57,6 @@ export async function POST(request: NextRequest) {
             const instructionsData = jupiterRes.data;
 
             if (instructionsData.error) {
-                console.error('[TradeSwapAPI] Jupiter /swap-instructions error:', instructionsData.error);
                 return NextResponse.json({ error: instructionsData.error }, { status: 500 });
             }
 

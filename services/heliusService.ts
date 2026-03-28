@@ -58,16 +58,18 @@ export const heliusService = {
     /**
      * Fetch parsed transaction history for a wallet address.
      */
-    getTransactionHistory: async (address: string) => {
+    getTransactionHistory: async (address: string, limit: number = 50, before?: string) => {
         // Basic validation: Solana addresses are base58 and typically 32-44 chars
         if (!address || address.length < 32 || address.length > 44) {
             return [];
         }
 
         try {
-            const response = await axios.get(
-                `https://api.helius.xyz/v0/addresses/${address}/transactions?api-key=${process.env.HELIUS_API_KEY}`
-            );
+            let url = `https://api.helius.xyz/v0/addresses/${address}/transactions?api-key=${process.env.HELIUS_API_KEY}&limit=${limit}`;
+            if (before) {
+                url += `&before=${before}`;
+            }
+            const response = await axios.get(url);
             return response.data;
         } catch (error: any) {
             // Suppress 400 Bad Request which usually indicates an invalid address format

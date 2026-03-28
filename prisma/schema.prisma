@@ -3,8 +3,9 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 model User {
@@ -18,6 +19,22 @@ model User {
   transactions  Transaction[]
   sentinelAnalyses SentinelAnalysis[]
   watchlists    Watchlist[]
+  alerts           Alert[]
+  plan             String   @default("FREE")
+  role             String   @default("USER")
+  twoFactorEnabled Boolean  @default(false)
+  apiKeys          ApiKey[]
+}
+
+model ApiKey {
+  id         String   @id @default(uuid())
+  userId     String
+  key        String   @unique
+  name       String
+  createdAt  DateTime @default(now())
+  lastUsedAt DateTime?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Wallet {
@@ -34,12 +51,19 @@ model Wallet {
 }
 
 model Transaction {
-  id        String   @id @default(uuid())
-  userId    String
-  chain     String
-  type      String
-  txHash    String?
-  createdAt DateTime @default(now())
+  id          String   @id @default(uuid())
+  userId      String
+  chain       String
+  type        String
+  txHash      String?
+  status      String   @default("PENDING") // PENDING, SUCCESS, FAILED, REFUNDED
+  fromToken   String?
+  toToken     String?
+  fromAmount  Float?
+  toAmount    Float?
+  usdValue    Float?
+  errorLogs   String?
+  createdAt   DateTime @default(now())
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
@@ -64,6 +88,20 @@ model Watchlist {
   createdAt DateTime @default(now())
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  alerts Alert[]
 
   @@unique([userId, chain, address], name: "userId_chain_address")
+}
+
+model Alert {
+  id             String   @id @default(uuid())
+  watchlistId    String
+  userId         String
+  type           String   // 'PRICE_ABOVE', 'PRICE_BELOW', 'VOLUME_SPIKE', 'AI_RISK_HIGH'
+  thresholdValue Float?
+  status         String   @default("ACTIVE") // 'ACTIVE', 'TRIGGERED', 'PAUSED'
+  createdAt      DateTime @default(now())
+
+  watchlist      Watchlist @relation(fields: [watchlistId], references: [id], onDelete: Cascade)
+  user           User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 }

@@ -11,8 +11,7 @@ import { TokenTabs } from '@/components/Token/TokenTabs/TokenTabs';
 import { RightTradePanel } from '@/components/Shared/RightTradePanel';
 import { Navbar } from '@/components/Shared/Navbar';
 import { Sidebar } from '@/components/Shared/Sidebar';
-import { Toaster } from '@/components/ui/toast/toaster';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { useRightPanelStore } from '@/store/useRightPanelStore';
 
 interface TokenPageClientProps {
@@ -23,7 +22,6 @@ interface TokenPageClientProps {
 
 export function TokenPageClient({ chain, address, initialMeta }: TokenPageClientProps) {
   const router = useRouter();
-  const { toast } = useToast();
   const { sendAnalytics } = useAnalytics();
   const [chartRange, setChartRange] = useState<'1d' | '7d' | '30d' | 'all'>('1d');
   const [isWatchlisted, setIsWatchlisted] = useState(false);
@@ -86,10 +84,7 @@ export function TokenPageClient({ chain, address, initialMeta }: TokenPageClient
       action: newState ? 'add' : 'remove',
     });
 
-    toast({
-      title: newState ? 'Added to Watchlist' : 'Removed from Watchlist',
-      description: `${displayMeta?.symbol || 'Token'} ${newState ? 'added to' : 'removed from'} your watchlist`,
-    });
+    toast.success(`${displayMeta?.symbol || 'Token'} ${newState ? 'added to' : 'removed from'} your watchlist`);
 
     try {
       const res = await fetch('/api/watchlist', {
@@ -100,20 +95,12 @@ export function TokenPageClient({ chain, address, initialMeta }: TokenPageClient
       if (!res.ok) {
         // Revert on failure
         setIsWatchlisted(previousState);
-        toast({
-          title: 'Error',
-          description: 'Failed to update watchlist server-side. Change reverted.',
-          variant: 'destructive', // Assuming we have a destructive variant, else it functions as default
-        });
+        toast.error('Failed to update watchlist server-side. Change reverted.');
       }
     } catch (err) {
       // Revert on network error
       setIsWatchlisted(previousState);
-      toast({
-        title: 'Error',
-        description: 'Network error updating watchlist. Change reverted.',
-        variant: 'destructive',
-      });
+      toast.error('Network error updating watchlist. Change reverted.');
     }
   };
 
@@ -209,7 +196,7 @@ export function TokenPageClient({ chain, address, initialMeta }: TokenPageClient
         </div>
       </main>
 
-      <Toaster />
+
     </div>
   );
 }
