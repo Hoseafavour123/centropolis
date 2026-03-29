@@ -7,7 +7,9 @@ import BalanceSummary from '@/components/wallet/BalanceSummary';
 import PositionCards from '@/components/wallet/PositionCards';
 import TxTimeline from '@/components/wallet/TxTimeline';
 
-export default function WalletPage() {
+import { Suspense } from 'react';
+
+function WalletContent() {
     const searchParams = useSearchParams();
     const queryAddress = searchParams.get('address');
     const { walletAddress: connectedAddress } = useWalletStore();
@@ -74,5 +76,17 @@ export default function WalletPage() {
                 </div>
             )}
         </main>
+    );
+}
+
+export default function WalletPage() {
+    return (
+        <Suspense fallback={
+            <div className="flex h-[80vh] items-center justify-center">
+                <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+            </div>
+        }>
+            <WalletContent />
+        </Suspense>
     );
 }

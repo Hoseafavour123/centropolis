@@ -4,18 +4,19 @@ import { prisma } from '@/lib/prisma';
 
 export async function GET(
     request: Request,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
-        const { userId: clerkId } = auth();
+        const { id } = await params;
+        const { userId: clerkId } = await auth();
 
         // Ensure the authenticated user matches the requested id
-        if (!clerkId || clerkId !== params.id) {
+        if (!clerkId || clerkId !== id) {
             return new NextResponse('Unauthorized', { status: 401 });
         }
 
         const user = await prisma.user.findUnique({
-            where: { clerkId: params.id },
+            where: { clerkId: id },
             select: {
                 plan: true,
             }

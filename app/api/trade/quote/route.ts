@@ -5,7 +5,7 @@ import { TradeQuoteResponse } from '@/types/token';
 import { prisma } from '@/lib/prisma';
 
 const SOL_MINT = 'So11111111111111111111111111111111111111112';
-const USDC_MINT = 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v';
+const USDC_MINT = 'EPjFW36DP7mVQC7i57K6BgnUpWMT8Dz6enwbp9z96Utm';
 const USDT_MINT = 'Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB';
 
 // Mints for which we have pre-configured Jupiter referral token accounts
@@ -37,24 +37,24 @@ export async function GET(request: NextRequest) {
     const fullAmountInAtoms = Math.floor(parseFloat(amount) * Math.pow(10, inputDecimals));
 
     // ─── Fee strategy ────────────────────────────────────────────────────────
-    // Prefer collecting fees from the OUTPUT token (standard Jupiter referral).
-    // When the output is a non-major token (e.g. BONK), fall back to collecting
-    // from the INPUT token if it is a major token (SOL/USDC/USDT).
-    // Jupiter accepts a referral token account for either side — it deducts fees
-    // from whichever mint the provided feeAccount belongs to.
+    // If the input is a major token (SOL/USDC/USDT), we ALWAYS prefer 'input' strategy
+    // because it allows us to collect any fee amount (like 15%) manually.
+    // If only the output is a major token, we use 'output' strategy but MUST cap
+    // the fee at 100bps (1%) which is Jupiter's maximum for referrals.
     let feeMint: string | null = null;
     let feeStrategy: 'output' | 'input' | 'none' = 'none';
 
-    if (FEE_MINTS.has(outputMint)) {
-      feeMint = outputMint;
-      feeStrategy = 'output';
-    } else if (FEE_MINTS.has(inputMint)) {
+    if (FEE_MINTS.has(inputMint)) {
       feeMint = inputMint;
       feeStrategy = 'input';
+    } else if (FEE_MINTS.has(outputMint)) {
+      feeMint = outputMint;
+      feeStrategy = 'output';
     }
 
     // Only pass platformFeeBps to Jupiter if the fee is being collected on the OUTPUT token
-    const platformFeeBps = feeStrategy === 'output' ? PLATFORM_FEE_BPS : undefined;
+    // Capped at 100 bps (1%) per Jupiter V6 limits.
+    const platformFeeBps = feeStrategy === 'output' ? Math.min(PLATFORM_FEE_BPS, 100) : undefined;
 
     let swapAmountInAtoms = fullAmountInAtoms;
     let manualFeeAtoms: string | undefined = undefined;
@@ -75,8 +75,12 @@ export async function GET(request: NextRequest) {
     );
 
     if (!rawQuote || rawQuote.error) {
-      console.error('[TradeQuoteAPI] Jupiter quote error:', rawQuote?.error);
-      return NextResponse.json({ error: 'Failed to fetch quote from Jupiter', details: rawQuote?.error }, { status: 500 });
+      const errorDetail = rawQuote?.error || 'Unknown quote fetch error';
+      console.error('[TradeQuoteAPI] Jupiter quote error:', errorDetail);
+      return NextResponse.json({
+        error: 'Failed to fetch quote from Jupiter',
+        details: errorDetail
+      }, { status: 500 });
     }
 
     // Production Sentinel & Token Data

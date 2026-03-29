@@ -7,7 +7,8 @@
  */
 
 export interface Token {
-  id: string;
+  id: string; // pairAddress
+  address: string; // tokenAddress / mint
   symbol: string;
   name: string;
   price: number;

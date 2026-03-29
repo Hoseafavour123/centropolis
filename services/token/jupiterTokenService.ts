@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { TradeRoute } from '@/types/token';
 
-const JUPITER_QUOTE_API = 'https://public.jupiterapi.com/quote';
+const JUPITER_QUOTE_API = 'https://quote-api.jup.ag/v6/quote';
 
 export const jupiterTokenService = {
     /**
@@ -14,17 +14,41 @@ export const jupiterTokenService = {
         slippageBps: number = 50,
         platformFeeBps?: number // Optional: e.g. 1500 = 15%
     ): Promise<any> => {
-        try {
-            let url = `${JUPITER_QUOTE_API}?inputMint=${inputMint}&outputMint=${outputMint}&amount=${amountInAtoms}&slippageBps=${slippageBps}`;
-            if (platformFeeBps !== undefined) {
-                url += `&platformFeeBps=${platformFeeBps}`;
+        let retries = 2;
+        while (retries >= 0) {
+            try {
+                let url = `${JUPITER_QUOTE_API}?inputMint=${inputMint}&outputMint=${outputMint}&amount=${amountInAtoms}&slippageBps=${slippageBps}`;
+                if (platformFeeBps !== undefined) {
+                    url += `&platformFeeBps=${platformFeeBps}`;
+                }
+                const response = await axios.get(url, { timeout: 10000 });
+                return response.data;
+            } catch (error: any) {
+                const isNetworkError = error.code === 'ENOTFOUND' || error.code === 'ECONNABORTED';
+                if (isNetworkError && retries > 0) {
+                    console.warn(`[JupiterService] Retrying quote fetch due to network issue (${error.code})...`);
+                    retries--;
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                    continue;
+                }
+
+                if (error.code === 'ENOTFOUND') {
+                    const msg = 'DNS Error: Could not resolve Jupiter API. Check internet/DNS.';
+                    console.error(`[JupiterService] ${msg}`);
+                    return { error: msg };
+                } else if (error.code === 'ECONNABORTED') {
+                    const msg = 'Timeout: Jupiter API took too long to respond.';
+                    console.error(`[JupiterService] ${msg}`);
+                    return { error: msg };
+                } else {
+                    const msg = error.message || 'Unknown Jupiter error';
+                    console.error(`[JupiterService] Error fetching raw quote: ${msg}`);
+                    return { error: msg };
+                }
+                return null;
             }
-            const response = await axios.get(url, { timeout: 15000 });
-            return response.data;
-        } catch (error) {
-            console.error('[JupiterService] Error fetching raw quote:', error);
-            return null;
         }
+        return { error: 'Failed to fetch quote after retries' };
     },
 
     /**

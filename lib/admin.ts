@@ -6,7 +6,7 @@ import { prisma } from "./prisma";
  * Returns the user object if they are an admin, otherwise throws an error or returns null.
  */
 export async function verifyAdmin() {
-    const { userId: clerkId } = auth();
+    const { userId: clerkId } = await auth();
 
     if (!clerkId) {
         return null;

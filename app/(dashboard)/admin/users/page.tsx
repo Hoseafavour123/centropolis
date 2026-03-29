@@ -6,7 +6,6 @@ import {
     MoreHorizontal,
     Shield,
     User as UserIcon,
-    Planet,
     Loader2,
     Check,
     X

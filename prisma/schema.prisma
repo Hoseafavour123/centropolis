@@ -24,6 +24,7 @@ model User {
   role             String   @default("USER")
   twoFactorEnabled Boolean  @default(false)
   apiKeys          ApiKey[]
+  notifications    Notification[]
 }
 
 model ApiKey {
@@ -104,4 +105,24 @@ model Alert {
 
   watchlist      Watchlist @relation(fields: [watchlistId], references: [id], onDelete: Cascade)
   user           User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Notification {
+  id        String   @id @default(uuid())
+  userId    String
+  title     String
+  message   String
+  type      String   @default("INFO") // INFO, WARNING, SUCCESS, DANGER
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model WaitlistEntry {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  name      String?
+  source    String?  // e.g., 'landing_page', 'referral'
+  createdAt DateTime @default(now())
 }

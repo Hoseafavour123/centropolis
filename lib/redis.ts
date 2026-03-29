@@ -8,8 +8,25 @@ if (redisUrl && !redisUrl.startsWith('redis://') && !redisUrl.startsWith('rediss
 }
 
 const redis = new Redis(redisUrl, {
-    maxRetriesPerRequest: null,
-    connectTimeout: 5000, // 5s timeout to avoid hanging indefinitely
+    maxRetriesPerRequest: 1, // Minimize build wait time
+    retryStrategy: (times) => {
+        // Stop retrying quickly during build if connection fails
+        if (times > 1) return null;
+        return 50;
+    },
+    enableReadyCheck: false,
+    enableOfflineQueue: false,
+    lazyConnect: true, // Don't connect until used
+});
+
+// Silence common build-time connection/auth errors
+redis.on('error', (err) => {
+    if (process.env.NEXT_PHASE === 'phase-production-build') {
+        // Just log minimal info during build to keep output clean
+        console.warn('[Redis Build Warning]', err.message);
+    } else {
+        console.error('Redis Error:', err);
+    }
 });
 
 export default redis;

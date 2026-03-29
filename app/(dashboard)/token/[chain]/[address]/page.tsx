@@ -22,10 +22,10 @@ export async function generateMetadata({ params }: TokenPageProps): Promise<Meta
   const meta = await fetchTokenMeta(chain, address);
 
   return {
-    title: meta ? `${meta.symbol} | ${meta.name} | Centropolis` : 'Token | Centropolis',
+    title: meta ? `${meta.symbol} | ${meta.name} | Binocs` : 'Token | Binocs',
     description: meta
       ? `${meta.name} (${meta.symbol}) - Market Cap: $${((meta.marketCapUsd || 0) / 1e9).toFixed(2)}B | Safety Score: ${meta.safetyScore}/100`
-      : 'Token details and analysis on Centropolis',
+      : 'Token details and analysis on Binocs',
   };
 }
 

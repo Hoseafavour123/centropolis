@@ -130,34 +130,34 @@ const PAGES = [
       },
     ],
   },
-//   {
-//     category: 'API Testing',
-//     description: 'Direct API endpoint testing',
-//     icon: '🔧',
-//     items: [
-//       {
-//         name: 'Token Metadata API',
-//         path: '/api/token/solana/So11111111111111111111111111111111111111112/meta',
-//         badge: 'GET',
-//         meta: 'JSON response',
-//         featured: false,
-//       },
-//       {
-//         name: 'Price History API',
-//         path: '/api/price/solana/So11111111111111111111111111111111111111112?range=1d',
-//         badge: 'GET',
-//         meta: 'OHLCV candles',
-//         featured: false,
-//       },
-//       {
-//         name: 'Trade Quote API',
-//         path: '/api/trade/quote?chain=solana&from=USDC&to=SOL&amount=1000',
-//         badge: 'GET',
-//         meta: 'Route comparison',
-//         featured: false,
-//       },
-//     ],
-//   },
+  //   {
+  //     category: 'API Testing',
+  //     description: 'Direct API endpoint testing',
+  //     icon: '🔧',
+  //     items: [
+  //       {
+  //         name: 'Token Metadata API',
+  //         path: '/api/token/solana/So11111111111111111111111111111111111111112/meta',
+  //         badge: 'GET',
+  //         meta: 'JSON response',
+  //         featured: false,
+  //       },
+  //       {
+  //         name: 'Price History API',
+  //         path: '/api/price/solana/So11111111111111111111111111111111111111112?range=1d',
+  //         badge: 'GET',
+  //         meta: 'OHLCV candles',
+  //         featured: false,
+  //       },
+  //       {
+  //         name: 'Trade Quote API',
+  //         path: '/api/trade/quote?chain=solana&from=USDC&to=SOL&amount=1000',
+  //         badge: 'GET',
+  //         meta: 'Route comparison',
+  //         featured: false,
+  //       },
+  //     ],
+  //   },
 ];
 
 export default function TestHubPage() {
@@ -169,7 +169,7 @@ export default function TestHubPage() {
     items: category.items.filter(item => {
       const matchesFilter = filter === 'all' || item.featured;
       const matchesSearch = item.name.toLowerCase().includes(search.toLowerCase()) ||
-                          item.meta.toLowerCase().includes(search.toLowerCase());
+        item.meta.toLowerCase().includes(search.toLowerCase());
       return matchesFilter && matchesSearch;
     }),
   })).filter(category => category.items.length > 0);
@@ -181,14 +181,14 @@ export default function TestHubPage() {
         <div className="container mx-auto px-4 h-16 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-600 to-purple-600 flex items-center justify-center font-bold text-white text-xl">
-              C
+              B
             </div>
             <div>
-              <h1 className="font-bold text-white text-lg">Centropolis</h1>
+              <h1 className="font-bold text-white text-lg">Binocs</h1>
               <p className="text-xs text-slate-500">Developer Test Hub</p>
             </div>
           </div>
-          <Link 
+          <Link
             href="/"
             className="px-4 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-sm font-medium transition-colors"
           >
@@ -202,7 +202,7 @@ export default function TestHubPage() {
         <div className="mb-8 text-center">
           <h2 className="text-3xl font-bold text-white mb-2">🧪 Testing Hub</h2>
           <p className="text-slate-400 max-w-2xl mx-auto">
-            Quick access to all pages and components. Use this to test token details, 
+            Quick access to all pages and components. Use this to test token details,
             AI analysis, trading flows, and API endpoints.
           </p>
         </div>
@@ -221,21 +221,19 @@ export default function TestHubPage() {
           <div className="flex gap-2">
             <button
               onClick={() => setFilter('all')}
-              className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                filter === 'all' 
-                  ? 'bg-blue-600 text-white' 
+              className={`px-4 py-2 rounded-lg font-medium transition-colors ${filter === 'all'
+                  ? 'bg-blue-600 text-white'
                   : 'bg-slate-800 text-slate-400 hover:text-white'
-              }`}
+                }`}
             >
               All
             </button>
             <button
               onClick={() => setFilter('featured')}
-              className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                filter === 'featured' 
-                  ? 'bg-blue-600 text-white' 
+              className={`px-4 py-2 rounded-lg font-medium transition-colors ${filter === 'featured'
+                  ? 'bg-blue-600 text-white'
                   : 'bg-slate-800 text-slate-400 hover:text-white'
-              }`}
+                }`}
             >
               Featured ⭐
             </button>
@@ -269,25 +267,24 @@ export default function TestHubPage() {
                         <span className="text-yellow-500 text-lg">⭐</span>
                       )}
                     </div>
-                    
+
                     <div className="flex items-center gap-2 mb-2">
-                      <span className={`px-2 py-0.5 rounded text-xs font-medium ${
-                        item.badge === 'GET' 
-                          ? 'bg-green-500/10 text-green-500' 
+                      <span className={`px-2 py-0.5 rounded text-xs font-medium ${item.badge === 'GET'
+                          ? 'bg-green-500/10 text-green-500'
                           : item.badge === 'solana'
-                          ? 'bg-purple-500/10 text-purple-500'
-                          : item.badge === 'ethereum'
-                          ? 'bg-blue-500/10 text-blue-500'
-                          : item.badge === 'base'
-                          ? 'bg-cyan-500/10 text-cyan-500'
-                          : 'bg-slate-800 text-slate-400'
-                      }`}>
+                            ? 'bg-purple-500/10 text-purple-500'
+                            : item.badge === 'ethereum'
+                              ? 'bg-blue-500/10 text-blue-500'
+                              : item.badge === 'base'
+                                ? 'bg-cyan-500/10 text-cyan-500'
+                                : 'bg-slate-800 text-slate-400'
+                        }`}>
                         {item.badge}
                       </span>
                     </div>
-                    
+
                     <p className="text-sm text-slate-500">{item.meta}</p>
-                    
+
                     <div className="mt-3 flex items-center text-xs text-slate-600 font-mono truncate">
                       {item.path}
                     </div>
@@ -302,7 +299,7 @@ export default function TestHubPage() {
         {filteredPages.length === 0 && (
           <div className="text-center py-12">
             <p className="text-slate-500">No pages match your search.</p>
-            <button 
+            <button
               onClick={() => { setSearch(''); setFilter('all'); }}
               className="mt-2 text-blue-500 hover:underline"
             >
@@ -354,7 +351,7 @@ function StatusCard({ label, status }: { label: string; status: 'online' | 'offl
     offline: 'bg-red-500/10 text-red-500 border-red-500/20',
     mock: 'bg-amber-500/10 text-amber-500 border-amber-500/20',
   };
-  
+
   return (
     <div className={`p-3 rounded-lg border text-center ${colors[status]}`}>
       <div className="text-xs uppercase tracking-wider opacity-80">{label}</div>

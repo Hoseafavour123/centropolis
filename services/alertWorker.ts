@@ -5,9 +5,24 @@ import { ALERT_QUEUE_NAME } from './alertQueue';
 import axios from 'axios';
 
 // Simple mock for delivery
+// Delivery function using the internal webhook
 async function deliverNotification(userId: string, title: string, message: string) {
-    console.log(`[Push/Email Stub] Delivering to ${userId}: ${title} - ${message}`);
-    // In production, this would call Novu, Twilio, Resend, or Web-Push
+    try {
+        const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+        await axios.post(`${baseUrl}/api/notifications/webhook`, {
+            userId,
+            title,
+            message,
+            type: 'ALARM'
+        }, {
+            headers: {
+                'x-webhook-secret': process.env.WEBHOOK_SECRET
+            }
+        });
+        console.log(`[AlertWorker] Notification delivered to ${userId}`);
+    } catch (error) {
+        console.error(`[AlertWorker] Failed to deliver notification to ${userId}:`, error);
+    }
 }
 
 export const alertWorker = new Worker(ALERT_QUEUE_NAME, async (job: Job) => {

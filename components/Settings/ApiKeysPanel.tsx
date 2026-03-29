@@ -99,7 +99,7 @@ export function ApiKeysPanel() {
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
                     <h2 className="text-2xl font-bold text-foreground mb-1">Developer API Keys</h2>
-                    <p className="text-muted-foreground text-sm">Create and manage keys to access the Centropolis API programmatically.</p>
+                    <p className="text-muted-foreground text-sm">Create and manage keys to access the Binocs API programmatically.</p>
                 </div>
             </div>
 

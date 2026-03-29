@@ -12,16 +12,25 @@ const inter = Inter({ subsets: ["latin"] });
 const geist = Geist({ subsets: ['latin'], variable: '--font-sans' });
 
 export const metadata: Metadata = {
-  title: "Centropolis | Web3 Trading Terminal",
+  title: "Binocs | Web3 Trading Terminal",
   description: "Advanced AI-powered trading dashboard",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <ClerkProvider>
+    <ClerkProvider
+      waitlistUrl="/waitlist"
+      appearance={{
+        variables: {
+          colorPrimary: '#6366f1',
+          colorBackground: '#0a0a0f',
+          colorText: '#ffffff',
+        },
+      }}
+    >
       <html lang="en" suppressHydrationWarning className={cn("font-sans", geist.variable)}>
         <head />
-        <body className={inter.className} suppressHydrationWarning>
+        <body className={`${inter.className} bg-[#0a0a0f] text-white overflow-x-hidden`} suppressHydrationWarning>
           <ThemeProvider
             attribute="class"
             defaultTheme="dark"

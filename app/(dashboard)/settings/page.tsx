@@ -8,7 +8,9 @@ import { SecuritySettings } from '@/components/Settings/SecuritySettings';
 import { ApiKeysPanel } from '@/components/Settings/ApiKeysPanel';
 import { useSearchParams, useRouter } from 'next/navigation';
 
-export default function SettingsPage() {
+import { Suspense } from 'react';
+
+function SettingsContent() {
     const searchParams = useSearchParams();
     const router = useRouter();
     const tabParam = searchParams.get('tab') || 'profile';
@@ -31,7 +33,7 @@ export default function SettingsPage() {
                         Settings
                     </h1>
                     <p className="text-muted-foreground text-lg font-medium max-w-2xl">
-                        Configure your Centropolis experience, manage API access, and secure your trading environment.
+                        Configure your Binocs experience, manage API access, and secure your trading environment.
                     </p>
                 </div>
             </div>
@@ -43,5 +45,17 @@ export default function SettingsPage() {
                 {activeTab === 'apikeys' && <ApiKeysPanel />}
             </SettingsLayout>
         </div>
+    );
+}
+
+export default function SettingsPage() {
+    return (
+        <Suspense fallback={
+            <div className="flex h-[80vh] items-center justify-center">
+                <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+            </div>
+        }>
+            <SettingsContent />
+        </Suspense>
     );
 }

@@ -1,7 +1,7 @@
 import { ReactNode } from 'react';
 
 export const metadata = {
-    title: 'Watchlists & Alerts | Centropolis',
+    title: 'Watchlists & Alerts | Binocs',
     description: 'Track your favorite assets and manage intelligent price and security alerts.',
 };
 

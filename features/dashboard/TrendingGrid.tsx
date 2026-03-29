@@ -95,8 +95,8 @@ function TokenCard({ token, isSelected, onClick }: {
     <Card
       onClick={onClick}
       className={`glass-panel transition-all cursor-pointer group ${isSelected
-          ? "border-primary ring-1 ring-primary/50 shadow-lg shadow-primary/10"
-          : "hover:border-primary/50"
+        ? "border-primary ring-1 ring-primary/50 shadow-lg shadow-primary/10"
+        : "hover:border-primary/50"
         }`}
     >
       <CardContent className="p-4">
@@ -206,8 +206,8 @@ export function TrendingGrid() {
         symbol: token.symbol,
         name: token.name,
         priceUsd: token.price,
-        // pairAddress used as id — not a mint; QuickTrade will show symbol only
-        mint: token.id,
+        // Now using the actual mint address for trading
+        mint: token.address,
       });
     }
   }

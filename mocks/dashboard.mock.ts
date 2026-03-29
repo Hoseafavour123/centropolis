@@ -42,6 +42,7 @@ export const generateCandleData = (
 export const MOCK_TOKENS: Token[] = [
   {
     id: "1",
+    address: "1",
     symbol: "MEME",
     name: "MemeCoin",
     price: 0.0148,
@@ -49,11 +50,12 @@ export const MOCK_TOKENS: Token[] = [
     volume24h: 45000000,
     marketCap: 120000000,
     logoUrl: "/tokens/meme.png",
-    chain: "solana",
+    chain: "solana" as const,
     safetyScore: 45,
   },
   {
     id: "2",
+    address: "2",
     symbol: "SHDW",
     name: "Shadow Token",
     price: 1.83,
@@ -61,11 +63,12 @@ export const MOCK_TOKENS: Token[] = [
     volume24h: 12000000,
     marketCap: 85000000,
     logoUrl: "/tokens/shdw.png",
-    chain: "solana",
+    chain: "solana" as const,
     safetyScore: 82,
   },
   {
     id: "3",
+    address: "3",
     symbol: "WIF",
     name: "Dog Wif Hat",
     price: 0.248,
@@ -73,11 +76,12 @@ export const MOCK_TOKENS: Token[] = [
     volume24h: 89000000,
     marketCap: 250000000,
     logoUrl: "/tokens/wif.png",
-    chain: "solana",
+    chain: "solana" as const,
     safetyScore: 60,
   },
   {
     id: "4",
+    address: "4",
     symbol: "BONK",
     name: "Bonk",
     price: 0.00000651,
@@ -85,7 +89,7 @@ export const MOCK_TOKENS: Token[] = [
     volume24h: 150000000,
     marketCap: 400000000,
     logoUrl: "/tokens/bonk.png",
-    chain: "solana",
+    chain: "solana" as const,
     safetyScore: 78,
   },
 ];

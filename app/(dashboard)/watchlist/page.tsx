@@ -68,7 +68,7 @@ export default function WatchlistPage() {
                                 <Plus className="w-8 h-8 text-gray-400" />
                             </div>
                             <h3 className="text-xl font-bold text-white mb-2">Build your Watchlist</h3>
-                            <p className="text-gray-400 max-w-sm mb-6">Track your favorite assets, set up custom alerts, and let Centropolis monitor the markets for you.</p>
+                            <p className="text-gray-400 max-w-sm mb-6">Track your favorite assets, set up custom alerts, and let Binocs monitor the markets for you.</p>
                             <button className="bg-emerald-500 text-black font-semibold px-6 py-3 rounded-xl hover:bg-emerald-400 transition">
                                 Search Tokens
                             </button>

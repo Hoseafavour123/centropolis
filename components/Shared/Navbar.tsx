@@ -16,18 +16,20 @@ export function Navbar() {
   const { walletAddress, chain, isConnected } = useWalletStore();
   const { user } = useCurrentUser();
 
-  const { data: alerts } = useQuery({
-    queryKey: ['active-alerts-nav'],
+  const { data: notificationsRes } = useQuery({
+    queryKey: ['notifications-nav'],
     queryFn: async () => {
-      if (!user) return [];
-      const res = await axios.get('/api/alerts/active');
-      return res.data.alerts || [];
+      if (!user) return { notifications: [] };
+      const res = await axios.get('/api/notifications');
+      return res.data;
     },
     enabled: !!user,
     refetchInterval: 10000
   });
 
-  const hasUnreadAlerts = alerts?.some((a: any) => a.status === 'TRIGGERED');
+  const notifications = notificationsRes?.notifications || [];
+  const unreadCount = notifications.filter((n: any) => !n.read).length;
+  const hasUnread = unreadCount > 0;
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -43,10 +45,10 @@ export function Navbar() {
           </Button>
           <Link href="/dashboard" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
             <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center text-primary-foreground font-bold text-xl">
-              C
+              B
             </div>
             <span className="text-xl font-bold tracking-tight hidden md:inline-block">
-              Centropolis
+              Binocs
             </span>
           </Link>
         </div>
@@ -70,8 +72,10 @@ export function Navbar() {
 
           <Link href="/watchlist" className="relative p-2 text-muted-foreground hover:text-foreground transition-colors mr-2">
             <Bell className="h-5 w-5" />
-            {hasUnreadAlerts && (
-              <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full border-2 border-background animate-pulse" />
+            {hasUnread && (
+              <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white border-2 border-background animate-pulse">
+                {unreadCount > 9 ? '9+' : unreadCount}
+              </span>
             )}
           </Link>
 

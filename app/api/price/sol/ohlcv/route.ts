@@ -58,6 +58,12 @@ export async function GET(req: NextRequest) {
 
     // --- Try Birdeye first (free public endpoint, no key needed for basic) ---
     try {
+        const apiKey = process.env.BIRDEYE_API_KEY;
+        if (!apiKey) {
+            console.warn("[/api/price/sol/ohlcv] BIRDEYE_API_KEY is missing, skipping Birdeye.");
+            throw new Error("Missing API Key");
+        }
+
         const { data } = await axios.get(BIRDEYE_API, {
             params: {
                 address: SOL_MINT,
@@ -66,11 +72,11 @@ export async function GET(req: NextRequest) {
                 time_to: now,
             },
             headers: {
-                "X-API-KEY": process.env.BIRDEYE_API_KEY || "",
+                "X-API-KEY": apiKey,
                 accept: "application/json",
                 "x-chain": "solana",
             },
-            timeout: 10_000,
+            timeout: 8_000,
         });
 
         if (data?.data?.items && data.data.items.length > 0) {
@@ -87,32 +93,50 @@ export async function GET(req: NextRequest) {
                 headers: { "Cache-Control": "public, s-maxage=30, stale-while-revalidate=60" },
             });
         }
-    } catch (err) {
-        console.warn("[/api/price/sol/ohlcv] Birdeye failed, falling back:", err);
+    } catch (err: any) {
+        if (err.response?.status === 401 || err.response?.status === 403) {
+            console.error("[/api/price/sol/ohlcv] Birdeye Auth Error (401/403). Check your API Key.");
+        } else {
+            console.warn("[/api/price/sol/ohlcv] Birdeye failed, falling back:", err.message);
+        }
     }
 
-    // --- Fallback: GeckoTerminal candlestick data for SOL/USDC on Orca ---
-    // GeckoTerminal API is public and more permissive than DexScreener's internal endpoints
+    // --- Fallback: GeckoTerminal candlestick data for SOL/USDC on Raydium ---
     try {
-        const poolAddress = "EGZ7tiLeH62TPV1gL8WCUJWAcbxskziP1T5pXp7M1Gtc"; // SOL/USDC Orca pool
-        // Map interval to GeckoTerminal timeframe
+        // SOL/USDC Raydium Authority Pool (very stable)
+        const raydiumPool = "8sLbNZoFvuy3wW3vfsNPiaHwwZ9R8WfAFB4oAdXqAnvD";
+        const orcaPool = "EGZ7tiLeH62TPV1gL8WCUJWAcbxskziP1T5pXp7M1Gtc";
+
+        // Try Raydium first, then Orca
+        let poolAddress = raydiumPool;
+
         const gtTimeframe = ["1m", "5m", "15m"].includes(interval) ? "minute" : ["1H", "4H"].includes(interval) ? "hour" : "day";
         const gtAggregate = interval === "5m" ? 5 : interval === "15m" ? 15 : interval === "4H" ? 4 : 1;
 
-        const { data } = await axios.get(
-            `https://api.geckoterminal.com/api/v2/networks/solana/pools/${poolAddress}/ohlcv/${gtTimeframe}`,
-            {
-                params: {
-                    aggregate: gtAggregate,
-                    limit: Math.min(limit, 1000)
-                },
-                timeout: 10_000,
-                headers: { "Accept": "application/json;version=20230302" }
-            }
-        );
+        const fetchGT = async (pool: string) => {
+            return await axios.get(
+                `https://api.geckoterminal.com/api/v2/networks/solana/pools/${pool}/ohlcv/${gtTimeframe}`,
+                {
+                    params: {
+                        aggregate: gtAggregate,
+                        limit: Math.min(limit, 1000)
+                    },
+                    timeout: 8_000,
+                    headers: { "Accept": "application/json;version=20230302" }
+                }
+            );
+        };
 
+        let gtResponse;
+        try {
+            gtResponse = await fetchGT(poolAddress);
+        } catch (e) {
+            console.warn(`[/api/price/sol/ohlcv] GeckoTerminal Raydium failed, trying Orca...`);
+            gtResponse = await fetchGT(orcaPool);
+        }
+
+        const data = gtResponse.data;
         if (data?.data?.attributes?.ohlcv_list && data.data.attributes.ohlcv_list.length > 0) {
-            // GeckoTerminal returns: [timestamp, open, high, low, close, volume]
             const rawList = data.data.attributes.ohlcv_list;
             const candles = rawList.map((c: number[]) => ({
                 time: c[0],
@@ -123,7 +147,6 @@ export async function GET(req: NextRequest) {
                 volume: c[5],
             }));
 
-            // API returns newest first, lightweight-charts expects oldest first
             candles.reverse();
 
             return NextResponse.json(candles, {

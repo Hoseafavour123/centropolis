@@ -4,6 +4,7 @@ const isPublicRoute = createRouteMatcher([
     '/',                   // landing page
     '/sign-in(.*)',
     '/sign-up(.*)',
+    '/waitlist(.*)',
     '/api/dashboard/(.*)', // public market data – no user info exposed
     '/api/holders/(.*)',   // public holder data
     '/api/liquidity/(.*)', // public liquidity data

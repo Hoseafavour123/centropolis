@@ -1,7 +1,7 @@
 import { ReactNode } from 'react';
 
 export const metadata = {
-    title: 'Orders & History | Centropolis',
+    title: 'Orders & History | Binocs',
     description: 'View your executed trades, pending transactions, and transaction receipts.',
 };
 

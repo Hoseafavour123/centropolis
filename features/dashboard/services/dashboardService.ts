@@ -29,6 +29,7 @@ export const dashboardService = {
         const raw = await dexscreenerService.getTrendingTokens(limit);
         return raw.map((t) => ({
             id: t.id,
+            address: t.address,
             symbol: t.symbol,
             name: t.name || t.symbol,
             price: t.price,

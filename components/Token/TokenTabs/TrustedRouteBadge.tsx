@@ -13,15 +13,15 @@ interface TrustedRouteBadgeProps {
 
 export function TrustedRouteBadge({ route, showDetails = false }: TrustedRouteBadgeProps) {
   const isBestRoute = route.provider === 'Jupiter';
-  
+
   return (
     <TooltipProvider>
       <div className="flex items-center gap-2">
         {/* Provider Badge */}
         <Tooltip>
           <TooltipTrigger asChild>
-            <Badge 
-              variant="outline" 
+            <Badge
+              variant="outline"
               className={cn(
                 "cursor-help",
                 route.provider === 'Jupiter' && "bg-pink-500/10 text-pink-500 border-pink-500/30",
@@ -43,8 +43,8 @@ export function TrustedRouteBadge({ route, showDetails = false }: TrustedRouteBa
         {route.jitoProtected && (
           <Tooltip>
             <TooltipTrigger asChild>
-              <Badge 
-                variant="outline" 
+              <Badge
+                variant="outline"
                 className="bg-green-500/10 text-green-500 border-green-500/30 cursor-help"
               >
                 <Lock className="w-3 h-3 mr-1" />
@@ -79,7 +79,7 @@ export function TrustedRouteBadge({ route, showDetails = false }: TrustedRouteBa
                   <Info className="w-3 h-3 cursor-help" />
                 </TooltipTrigger>
                 <TooltipContent>
-                  <p className="text-xs">Centropolis platform fee: 0.15%</p>
+                  <p className="text-xs">Binocs platform fee: 15%</p>
                 </TooltipContent>
               </Tooltip>
             </div>

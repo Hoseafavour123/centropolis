@@ -3,7 +3,7 @@
 import { SentinelPageClient } from './client/SentinelPageClient';
 
 export const metadata = {
-  title: 'Sentinel AI | Centropolis',
+  title: 'Sentinel AI | Binocs',
   description: 'AI-powered blockchain analysis',
 };
 

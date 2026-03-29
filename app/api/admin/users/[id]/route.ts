@@ -4,9 +4,10 @@ import { verifyAdmin } from "@/lib/admin";
 
 export async function PATCH(
     request: Request,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
+        const { id } = await params;
         const admin = await verifyAdmin();
         if (!admin) {
             return new NextResponse("Unauthorized", { status: 401 });
@@ -20,7 +21,7 @@ export async function PATCH(
         }
 
         const updatedUser = await prisma.user.update({
-            where: { id: params.id },
+            where: { id },
             data: {
                 ...(role ? { role } : {}),
                 ...(plan ? { plan } : {}),

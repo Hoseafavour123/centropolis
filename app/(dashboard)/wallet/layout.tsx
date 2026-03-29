@@ -1,7 +1,7 @@
 import { ReactNode } from 'react';
 
 export const metadata = {
-    title: 'Wallet Viewer | Centropolis',
+    title: 'Wallet Viewer | Binocs',
     description: 'View wallet holdings, balances, and transaction history.',
 };
 

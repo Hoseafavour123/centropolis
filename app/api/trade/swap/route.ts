@@ -6,12 +6,12 @@ import { Connection, PublicKey, TransactionInstruction, TransactionMessage, Vers
 import { createTransferInstruction, getAssociatedTokenAddressSync, createSyncNativeInstruction } from '@solana/spl-token';
 
 const SOL_MINT = 'So11111111111111111111111111111111111111112';
-const USDC_MINT = 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v';
+const USDC_MINT = 'EPjFW36DP7mVQC7i57K6BgnUpWMT8Dz6enwbp9z96Utm';
 const USDT_MINT = 'Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB';
 
 // Use the public Jupiter API — quote-api.jup.ag requires an API key
-const JUPITER_SWAP_URL = 'https://public.jupiterapi.com/swap';
-const JUPITER_INSTRUCTIONS_URL = 'https://public.jupiterapi.com/swap-instructions';
+const JUPITER_SWAP_URL = 'https://quote-api.jup.ag/v6/swap';
+const JUPITER_INSTRUCTIONS_URL = 'https://quote-api.jup.ag/v6/swap-instructions';
 
 export async function POST(request: NextRequest) {
     try {

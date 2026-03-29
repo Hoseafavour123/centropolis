@@ -1,0 +1,34 @@
+NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_test_bWlnaHR5LXR1bmEtMTIuY2xlcmsuYWNjb3VudHMuZGV2JA
+CLERK_SECRET_KEY=sk_test_UrtwzojbdIq3XxkWVLhOPB6qTIpTyElYConSCW6mea
+
+# Add your actual keys above before running
+NEXT_PUBLIC_CLERK_SIGN_IN_URL=/sign-in
+NEXT_PUBLIC_CLERK_SIGN_UP_URL=/sign-up
+
+NEXT_PUBLIC_CLERK_AFTER_SIGN_IN_URL=/dashboard
+NEXT_PUBLIC_CLERK_AFTER_SIGN_UP_URL=/dashboard
+
+# HELIUS
+HELIUS_API_KEY=f5f3e4bd-8729-40dd-bedb-e784d0de3972
+NEXT_PUBLIC_SOLANA_RPC=https://mainnet.helius-rpc.com/?api-key=f5f3e4bd-8729-40dd-bedb-e784d0de3972
+
+
+
+# OPENAI
+OPENAI_API_KEY=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
+NEXT_PUBLIC_API_URL=http://localhost:3000
+
+
+# ─── Jupiter Referral Token Accounts ────────────────────────────────────────
+# Get these from: https://referral.jup.ag/ → Tokens tab → copy each token account address
+
+# Per-token referral fee accounts (paste from Jupiter dashboard)
+PLATFORM_FEE_ACCOUNT_SOL=2KksRxnuoRWoNnWhP2QJMUaUWpdX7HBRB5ELKUYUnazm
+PLATFORM_FEE_ACCOUNT_USDC=C699Zh9FqtUtJgjyZ4ZQFBmUf2QZuW5m4YNAj57Saqbd
+PLATFORM_FEE_ACCOUNT_USDT=4uyzbtopK7LBUYj9LoMLt9rwFAMFwWD9znCrw5pY6Ycr
+
+
+# REDIS
+REDIS_URL=redis-19730.crce285.us-east-1-4.ec2.cloud.redislabs.com:19730
+
+#node scripts/promote-admin.js your-clerk-email@example.com

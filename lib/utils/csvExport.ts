@@ -7,12 +7,16 @@ export function exportToCsv(filename: string, rows: object[]) {
         '\n' +
         rows.map(row => {
             return keys.map(k => {
-                let cell = row[k as keyof typeof row] === null || row[k as keyof typeof row] === undefined ? '' : row[k as keyof typeof row];
-                cell = cell instanceof Date ? cell.toLocaleString() : cell.toString().replace(/"/g, '""');
-                if (cell.search(/("|,|\n)/g) >= 0) {
-                    cell = `"${cell}"`;
+                const value = (row as any)[k];
+                let cell: string | number | boolean = '';
+
+                if (value instanceof Date) {
+                    cell = value.toLocaleString();
+                } else if (value !== null && value !== undefined) {
+                    cell = value.toString();
                 }
-                return cell;
+
+                return `"${cell.toString().replace(/"/g, '""')}"`;
             }).join(separator);
         }).join('\n');
 
