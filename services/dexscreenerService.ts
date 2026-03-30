@@ -17,8 +17,7 @@ const DEXSCREENER_SEARCH_API = "https://api.dexscreener.com/latest/dex/search";
 const DEXSCREENER_BOOST_API = "https://api.dexscreener.com/token-boosts/top/v1";
 
 export interface DexScreenerToken {
-    id: string; // pairAddress
-    address: string; // tokenAddress / mint
+    id: string;
     symbol: string;
     name: string;
     price: number;
@@ -109,7 +108,6 @@ export const dexscreenerService = {
                 if (pairs.length > 0) {
                     return pairs.map((pair) => ({
                         id: pair.pairAddress,
-                        address: pair.baseToken.address,
                         symbol: pair.baseToken.symbol,
                         name: pair.baseToken.name,
                         price: parseFloat(pair.priceUsd) || 0,
@@ -139,7 +137,6 @@ export const dexscreenerService = {
 
             return fallbackPairs.map((pair) => ({
                 id: pair.pairAddress,
-                address: pair.baseToken.address,
                 symbol: pair.baseToken.symbol,
                 name: pair.baseToken.name,
                 price: parseFloat(pair.priceUsd) || 0,

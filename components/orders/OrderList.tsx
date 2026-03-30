@@ -13,6 +13,15 @@ export default function OrderList({
     onSelectOrder,
     selectedOrderId
 }: any) {
+    const formatToken = (mint: string) => {
+        if (!mint) return '—';
+        if (mint === 'So11111111111111111111111111111111111111112') return 'SOL';
+        if (mint === 'EPjFW36DP7mVQC7i57K6BgnUpWMT8Dz6enwbp9z96Utm' ||
+            mint === 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v') return 'USDC';
+        if (mint === 'Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB') return 'USDT';
+        // Truncate other mint addresses
+        return mint.length > 10 ? `${mint.slice(0, 4)}...${mint.slice(-3)}` : mint;
+    };
     if (isLoading) {
         return (
             <div className="space-y-4">
@@ -76,7 +85,7 @@ export default function OrderList({
                                         {trade.type}
                                         {trade.fromToken && trade.toToken && (
                                             <span className="text-gray-400 text-sm font-normal normal-case">
-                                                {trade.fromToken} → {trade.toToken}
+                                                {formatToken(trade.fromToken)} → {formatToken(trade.toToken)}
                                             </span>
                                         )}
                                     </h4>
@@ -87,7 +96,7 @@ export default function OrderList({
                                 {trade.usdValue ? (
                                     <div className="font-bold text-white">${trade.usdValue.toFixed(2)}</div>
                                 ) : (
-                                    <div className="font-bold text-white">{trade.toAmount ? `${trade.toAmount} ${trade.toToken}` : '—'}</div>
+                                    <div className="font-bold text-white">{trade.toAmount ? `${trade.toAmount} ${formatToken(trade.toToken)}` : '—'}</div>
                                 )}
                                 <div className={`text-[10px] font-bold tracking-widest uppercase mt-1 ${trade.status === 'SUCCESS' ? 'text-emerald-500' : trade.status === 'FAILED' ? 'text-red-500' : trade.status === 'REFUNDED' ? 'text-purple-500' : 'text-yellow-500'}`}>
                                     {trade.status}

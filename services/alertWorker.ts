@@ -25,6 +25,8 @@ async function deliverNotification(userId: string, title: string, message: strin
     }
 }
 
+console.log(`[AlertWorker] Worker started and listening to queue: ${ALERT_QUEUE_NAME}`);
+
 export const alertWorker = new Worker(ALERT_QUEUE_NAME, async (job: Job) => {
     const { alertId } = job.data;
 

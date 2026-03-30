@@ -5,7 +5,7 @@
 import { useEffect, useRef, useCallback } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { PricePoint } from '@/types/token';
-import { priceSimulator } from '@/mocks/token.mock';
+import { priceSimulator } from '@/mocks/token';
 
 const fetchPriceHistory = async (chain: string, address: string, range: string): Promise<PricePoint[]> => {
   const res = await fetch(`/api/price/${chain}/${address}?range=${range}`);

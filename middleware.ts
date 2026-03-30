@@ -14,6 +14,7 @@ const isPublicRoute = createRouteMatcher([
     '/wallet(.*)',         // public wallet viewer
     '/api/wallet/(.*)',    // public wallet data
     '/api/telemetry(.*)',  // public telemetry endpoint
+    '/api/notifications/webhook(.*)', // public notification delivery
 ])
 
 export default clerkMiddleware(async (auth, req) => {

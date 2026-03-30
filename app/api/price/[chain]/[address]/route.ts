@@ -2,7 +2,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { PricePoint } from '@/types/token';
-import { generateCandles } from '@/mocks/token.mock';
+import { generateCandles } from '@/mocks/token';
 
 // // Generate realistic OHLCV data
 // function generateCandles(

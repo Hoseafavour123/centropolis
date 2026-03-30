@@ -23,6 +23,8 @@ export async function GET(req: Request) {
             take: 20,
         });
 
+        console.log('Notifications:', notifications);
+
         return NextResponse.json({ notifications });
     } catch (error) {
         console.error('Fetch notifications error:', error);

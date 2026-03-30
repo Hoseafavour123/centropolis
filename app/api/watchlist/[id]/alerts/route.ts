@@ -35,7 +35,10 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
             return NextResponse.json({ error: 'Watchlist item not found' }, { status: 404 });
         }
 
+
+
         // Create the alert in DB
+        console.log(`[AlertAPI] Creating alert for user ${user.id}, watchlist ${watchlistId}...`);
         const alert = await prisma.alert.create({
             data: {
                 watchlistId,
@@ -45,13 +48,25 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
                 status: 'ACTIVE'
             }
         });
+        console.log(`[AlertAPI] Alert created successfully: ${alert.id}`);
 
         // Enqueue the job for evaluation
-        await scheduleAlertEvaluation(alert.id);
+        console.log(`[AlertAPI] Scheduling evaluation for alert ${alert.id}...`);
+        const job = await scheduleAlertEvaluation(alert.id);
 
-        return NextResponse.json({ alert }, { status: 201 });
-    } catch (error) {
-        console.error('Create alert error:', error);
-        return NextResponse.json({ error: 'Failed to create alert' }, { status: 500 });
+        if (!job) {
+            console.error('[AlertAPI] Failed to schedule alert evaluation (job is null)');
+            await prisma.alert.delete({
+                where: { id: alert.id }
+            });
+            return NextResponse.json({ error: 'Failed to schedule alert evaluation' }, { status: 500 });
+        }
+
+        console.log(`[AlertAPI] Job scheduled successfully: ${job.id}`);
+
+        return NextResponse.json({ alert, job }, { status: 201 });
+    } catch (error: any) {
+        console.error('[AlertAPI] Create alert error:', error.message || error);
+        return NextResponse.json({ error: `Failed to create alert: ${error.message || 'Unknown error'}` }, { status: 500 });
     }
 }

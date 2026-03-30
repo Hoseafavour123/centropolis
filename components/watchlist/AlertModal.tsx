@@ -27,12 +27,12 @@ export default function AlertModal({ isOpen, onClose, item, tokenSymbol, current
                 type: alertType,
                 thresholdValue: parseFloat(targetPrice)
             }, {
-                timeout: 5000 // 5s timeout to prevent hanging UI
+                timeout: 30000 // 30s timeout to allow Redis connection
             });
 
+            toast.success('Alert scheduled successfully!');
             onClose();
-            // In a real app we'd dispatch a toast or invalidate the query to re-fetch alerts
-            window.location.reload(); // Simple refresh to show new alert in feed
+            // Optional: trigger a re-fetch of alerts if you have a query to invalidate
         } catch (error: any) {
             console.error('Failed to create alert', error);
             // Alert user of failure

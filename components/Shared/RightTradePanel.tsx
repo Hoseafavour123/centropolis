@@ -40,20 +40,16 @@ export function RightTradePanel({
   amountUsd = '0.0'
 }: RightTradePanelProps) {
   // Helper to format long addresses into 4-letter symbols
-  // Helper to format symbols robustly
-  const formatSymbol = (sym?: string) => {
-    if (!sym) return 'TKN';
-    if (sym === 'Unknown Token') return 'TKN';
-    return sym.length > 16 ? sym.slice(0, 4).toUpperCase() : sym;
-  };
+  const formatSymbol = (sym: string) => sym.length > 10 ? sym.slice(0, 4).toUpperCase() : sym;
 
   const [from, setFrom] = useState(fromToken);
   const [to, setTo] = useState(toAddress || toToken);
 
+  // If the passed toToken is a long address (like from the URL), shorten it for display
   const [toSymbol, setToSymbol] = useState(formatSymbol(toToken));
   const [fromSymbol, setFromSymbol] = useState(formatSymbol(fromToken));
 
-  const [amount, setAmount] = useState(amountUsd);
+  const [amount, setAmount] = useState("0.0");
   const [showDetails, setShowDetails] = useState(true);
 
   // Quote expiry countdown
@@ -62,7 +58,6 @@ export function RightTradePanel({
 
   const { balance: solBalance, tokens } = useWalletData();
   const { isConnected } = useWalletStore();
-  const { tradeState, quote, error, fetchQuote, executeSwap, resetTrade } = useTrade();
 
   const usdcBalance = useMemo(() => {
     if (!tokens) return 0;
@@ -71,19 +66,7 @@ export function RightTradePanel({
     return token.token_info.balance / Math.pow(10, token.token_info.decimals);
   }, [tokens]);
 
-  // Sync state with props when they change (important for global selector)
-  useEffect(() => {
-    setFrom(fromToken);
-    setFromSymbol(formatSymbol(fromToken));
-  }, [fromToken]);
-
-  useEffect(() => {
-    const target = toAddress || toToken;
-    setTo(target);
-    setToSymbol(formatSymbol(toToken));
-    // Reset quote if target changes
-    resetTrade();
-  }, [toToken, toAddress, resetTrade]);
+  const { tradeState, quote, error, fetchQuote, executeSwap, resetTrade } = useTrade();
 
   const fromMint = useMemo(() => from === 'SOL' ? SOL_MINT : from === 'USDC' ? USDC_MINT : from, [from]);
   const toMint = useMemo(() => to === 'SOL' ? SOL_MINT : to === 'USDC' ? USDC_MINT : to, [to]);
@@ -468,7 +451,7 @@ export function RightTradePanel({
               <Button
                 className="w-full h-11 text-base font-semibold"
                 onClick={handleGetQuote}
-                disabled={isLoading || !amount || parseFloat(amount) <= 0}
+                disabled={isLoading || isSwapping || !amount || parseFloat(amount) <= 0}
               >
                 {isLoading ? (
                   <span className="flex items-center gap-2">

@@ -1,31 +1,36 @@
 import { Redis } from 'ioredis';
+const rawRedisUrl = process.env.REDIS_URL || 'redis://localhost:6379';
 
-let redisUrl = process.env.REDIS_URL || 'redis://localhost:6379';
-
-// Ensure protocol exists for ioredis
-if (redisUrl && !redisUrl.startsWith('redis://') && !redisUrl.startsWith('rediss://')) {
-    redisUrl = `redis://${redisUrl}`;
+// Construct explicit URL for better compatibility
+let finalRedisUrl = rawRedisUrl;
+if (process.env.REDIS_PASSWORD) {
+    const user = process.env.REDIS_USER || 'default';
+    // Remove protocol if exists to rebuild it
+    const hostPort = rawRedisUrl.replace(/^rediss?:\/\//, '');
+    finalRedisUrl = `redis://${user}:${process.env.REDIS_PASSWORD}@${hostPort}`;
+} else if (!rawRedisUrl.startsWith('redis://') && !rawRedisUrl.startsWith('rediss://')) {
+    finalRedisUrl = `redis://${rawRedisUrl}`;
 }
 
-const redis = new Redis(redisUrl, {
-    maxRetriesPerRequest: 1, // Minimize build wait time
+const redis = new Redis(finalRedisUrl, {
+    maxRetriesPerRequest: null,
+    connectTimeout: 20000,
+    commandTimeout: 15000,
     retryStrategy: (times) => {
-        // Stop retrying quickly during build if connection fails
-        if (times > 1) return null;
-        return 50;
+        const delay = Math.min(times * 200, 10000); // More relaxed retry
+        return delay;
     },
-    enableReadyCheck: false,
-    enableOfflineQueue: false,
-    lazyConnect: true, // Don't connect until used
+    enableReadyCheck: true,
+    enableOfflineQueue: true,
+    lazyConnect: true,
 });
 
-// Silence common build-time connection/auth errors
+// Detailed error logging
+redis.on('connect', () => console.log('Redis connected successfully.'));
 redis.on('error', (err) => {
-    if (process.env.NEXT_PHASE === 'phase-production-build') {
-        // Just log minimal info during build to keep output clean
-        console.warn('[Redis Build Warning]', err.message);
-    } else {
-        console.error('Redis Error:', err);
+    console.error('Redis connection error:', err.message);
+    if (err.message.includes('ECONNREFUSED')) {
+        console.error('Check if Redis is running and the port is open.');
     }
 });
 

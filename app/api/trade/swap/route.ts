@@ -6,12 +6,12 @@ import { Connection, PublicKey, TransactionInstruction, TransactionMessage, Vers
 import { createTransferInstruction, getAssociatedTokenAddressSync, createSyncNativeInstruction } from '@solana/spl-token';
 
 const SOL_MINT = 'So11111111111111111111111111111111111111112';
-const USDC_MINT = 'EPjFW36DP7mVQC7i57K6BgnUpWMT8Dz6enwbp9z96Utm';
+const USDC_MINT = 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v';
 const USDT_MINT = 'Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB';
 
 // Use the public Jupiter API — quote-api.jup.ag requires an API key
-const JUPITER_SWAP_URL = 'https://quote-api.jup.ag/v6/swap';
-const JUPITER_INSTRUCTIONS_URL = 'https://quote-api.jup.ag/v6/swap-instructions';
+const JUPITER_SWAP_URL = 'https://public.jupiterapi.com/swap';
+const JUPITER_INSTRUCTIONS_URL = 'https://public.jupiterapi.com/swap-instructions';
 
 export async function POST(request: NextRequest) {
     try {
@@ -189,12 +189,21 @@ export async function POST(request: NextRequest) {
         if (clerkId) {
             const dbUser = await prisma.user.findUnique({ where: { clerkId } });
             if (dbUser) {
+                // Determine tokens from quoteResponse
+                const fromMint_ = quoteResponse?.inputMint || feeMint;
+                const toMint_ = quoteResponse?.outputMint;
+
                 const record = await prisma.transaction.create({
                     data: {
                         userId: dbUser.id,
                         chain: 'solana',
                         type: 'swap',
                         txHash: 'pending_' + Date.now().toString(),
+                        fromToken: fromMint_,
+                        toToken: toMint_,
+                        fromAmount: quoteResponse?.inAmount ? parseFloat(quoteResponse.inAmount) / Math.pow(10, 9) : 0, // Fallback to 9 decimals if unknown
+                        toAmount: quoteResponse?.outAmount ? parseFloat(quoteResponse.outAmount) / Math.pow(10, 9) : 0,
+                        status: 'PENDING',
                     },
                 });
                 txRecordId = record.id;

@@ -144,7 +144,8 @@ export function useTrade() {
                 throw new Error(swapData.error || 'Failed to prepare swap transaction');
             }
 
-            console.log('[useTrade] ✅ Received swapTransaction (base64) from API. Length:', swapData.swapTransaction.length);
+            const recordId = swapData.recordId;
+            console.log('[useTrade] ✅ Received swapTransaction (base64) from API. RecordId:', recordId);
 
             // 2. Deserialize Transaction
             const swapTransactionBuf = Buffer.from(swapData.swapTransaction, 'base64');
@@ -157,6 +158,15 @@ export function useTrade() {
 
             const signature = await sendTransaction(transaction, connection);
 
+            // Update DB with the real signature as soon as we have it
+            if (recordId) {
+                fetch(`/api/trade/status/${recordId}`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ txHash: signature, status: 'PENDING' })
+                }).catch(err => console.error('[useTrade] Failed to update txHash in DB:', err));
+            }
+
             toast.loading('Confirming transaction...', { id: 'swap-toast' });
 
             // 4. Confirm Transaction
@@ -168,11 +178,26 @@ export function useTrade() {
 
             if (confirmation.value.err) {
                 console.error('[useTrade] ❌ Transaction failed on-chain. Signature:', signature, 'Error:', confirmation.value.err);
+                if (recordId) {
+                    await fetch(`/api/trade/status/${recordId}`, {
+                        method: 'PATCH',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ status: 'FAILED', errorLogs: JSON.stringify(confirmation.value.err) })
+                    }).catch(err => console.error('[useTrade] Failed to update FAILED status in DB:', err));
+                }
                 throw new Error('Transaction failed on-chain');
             }
 
             console.log('[useTrade] 🎉 Swap successful! Signature:', signature);
             console.log('========================================\n');
+
+            if (recordId) {
+                await fetch(`/api/trade/status/${recordId}`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ status: 'SUCCESS' })
+                }).catch(err => console.error('[useTrade] Failed to update SUCCESS status in DB:', err));
+            }
 
             toast.success('Swap successful!', { id: 'swap-toast' });
             setTradeState('success');
@@ -188,6 +213,11 @@ export function useTrade() {
             const errMsg = err.message || 'Transaction failed or was rejected';
             setError(errMsg);
             setTradeState('failed');
+
+            // If we have an error and we haven't already marked it as failed via confirmation
+            // (e.g. signing rejected or prep failed), we could also update DB if we have a recordId
+            // but usually recordId is only available after swapData is fetched.
+
             toast.error(`Swap failed: ${errMsg}`, { id: 'swap-toast' });
         }
     }, [quote, publicKey, signTransaction, sendTransaction, connection]);

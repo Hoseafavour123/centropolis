@@ -2,7 +2,7 @@
 
 import { useQuery } from '@tanstack/react-query';
 import axios from 'axios';
-import { X, ExternalLink, Download, FileText, AlertOctagon } from 'lucide-react';
+import { X, ExternalLink, Download, FileText, AlertOctagon, ShieldCheck } from 'lucide-react';
 import { exportToCsv } from '@/lib/utils/csvExport';
 import { useState } from 'react';
 
@@ -30,6 +30,15 @@ export default function OrderDetail({ order, onClose }: any) {
         );
     }
 
+    const formatToken = (mint: string) => {
+        if (!mint) return '—';
+        if (mint === 'So11111111111111111111111111111111111111112') return 'SOL';
+        if (mint === 'EPjFW36DP7mVQC7i57K6BgnUpWMT8Dz6enwbp9z96Utm' ||
+            mint === 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v') return 'USDC';
+        if (mint === 'Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB') return 'USDT';
+        return mint.length > 10 ? `${mint.slice(0, 4)}...${mint.slice(-3)}` : mint;
+    };
+
     const handleDownloadReceipt = () => {
         fetch('/api/telemetry', {
             method: 'POST',
@@ -42,8 +51,8 @@ export default function OrderDetail({ order, onClose }: any) {
             Type: order.type,
             Status: order.status,
             Hash: order.txHash || 'N/A',
-            From: `${order.fromAmount || ''} ${order.fromToken || ''}`,
-            To: `${order.toAmount || ''} ${order.toToken || ''}`,
+            From: `${order.fromAmount || ''} ${formatToken(order.fromToken)}`,
+            To: `${order.toAmount || ''} ${formatToken(order.toToken)}`,
             ValueUSD: order.usdValue || 0,
             Chain: order.chain
         }]);
@@ -104,9 +113,9 @@ export default function OrderDetail({ order, onClose }: any) {
                     <div className="bg-black/30 p-4 rounded-2xl border border-white/5 col-span-2">
                         <p className="text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-1">Trade Route</p>
                         <div className="flex items-center gap-2 mt-1">
-                            {order.fromAmount && <span className="text-white font-bold">{order.fromAmount} {order.fromToken}</span>}
+                            {order.fromAmount && <span className="text-white font-bold">{order.fromAmount} {formatToken(order.fromToken)}</span>}
                             <span className="text-gray-500">→</span>
-                            {order.toAmount && <span className="text-white font-bold">{order.toAmount} {order.toToken}</span>}
+                            {order.toAmount && <span className="text-white font-bold">{order.toAmount} {formatToken(order.toToken)}</span>}
                         </div>
                     </div>
                     <div className="bg-black/30 p-4 rounded-2xl border border-white/5 col-span-2 flex justify-between items-center">
@@ -124,7 +133,27 @@ export default function OrderDetail({ order, onClose }: any) {
                 )}
 
                 {/* Dispute Section */}
-                {(displayStatus === 'FAILED' || displayStatus === 'REFUNDED') && !disputeSubmitted && (
+                {disputeSubmitted || liveStatus?.dispute ? (
+                    <div className="mt-6 p-4 bg-emerald-500/10 border border-emerald-500/20 rounded-2xl text-center">
+                        <div className="flex items-center justify-center gap-2 mb-1">
+                            <ShieldCheck className="w-4 h-4 text-emerald-400" />
+                            <p className="text-emerald-400 text-sm font-bold">
+                                Dispute {liveStatus?.dispute?.status || 'Submitted'}
+                            </p>
+                        </div>
+                        <p className="text-gray-400 text-xs">
+                            {liveStatus?.dispute?.status === 'RESOLVED'
+                                ? 'This dispute has been resolved. Check your wallet for updates.'
+                                : 'Our support team is currently reviewing your transaction.'}
+                        </p>
+                        {liveStatus?.dispute?.reason && (
+                            <div className="mt-3 p-3 bg-black/30 rounded-xl text-left border border-white/5">
+                                <p className="text-[10px] uppercase font-bold text-gray-500 mb-1">Your Reason</p>
+                                <p className="text-xs text-gray-400 italic line-clamp-3">"{liveStatus.dispute.reason}"</p>
+                            </div>
+                        )}
+                    </div>
+                ) : (displayStatus === 'FAILED' || displayStatus === 'REFUNDED') && (
                     <div className="mt-6 pt-6 border-t border-white/5">
                         <h3 className="text-sm font-bold text-white mb-3">Request Support / Dispute</h3>
                         <textarea
@@ -140,13 +169,6 @@ export default function OrderDetail({ order, onClose }: any) {
                         >
                             {isDisputing ? 'Submitting...' : 'Submit Dispute'}
                         </button>
-                    </div>
-                )}
-
-                {disputeSubmitted && (
-                    <div className="mt-6 p-4 bg-emerald-500/10 border border-emerald-500/20 rounded-2xl text-center">
-                        <p className="text-emerald-400 text-sm font-bold">Dispute Submitted</p>
-                        <p className="text-gray-400 text-xs mt-1">Our support team will review this transaction shortly.</p>
                     </div>
                 )}
             </div>
