@@ -139,19 +139,9 @@ export function useSentinelAnalyze() {
     }
   }, [queryClient, sendAnalytics]);
 
-  const getResult = useCallback((analysisId: string) => {
-    return useQuery<SentinelResult>({
-      queryKey: ['sentinel', analysisId],
-      enabled: !!analysisId,
-      staleTime: 60 * 60 * 1000, // 1 hour
-      gcTime: 2 * 60 * 60 * 1000,
-    });
-  }, []);
-
   return {
     startAnalysis,
     subscribeToStream,
-    getResult,
     streamingText,
     status,
     analysisId: null as string | null, // Expose if needed

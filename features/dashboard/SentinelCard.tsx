@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { BrainCircuit, TrendingUp, Shield, Loader2, RefreshCcw } from "lucide-react";
 import { useSentinelAnalyze } from "@/hooks/useSentinelAnalyze";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { SentinelResult } from "@/types/sentinel";
 import { Button } from "@/components/ui/button";
 
@@ -12,15 +12,14 @@ export function SentinelCard() {
   const { startAnalysis, subscribeToStream, status, streamingText } = useSentinelAnalyze();
   const [result, setResult] = useState<SentinelResult | null>(null);
 
-  const runAnalysis = async () => {
+  const runAnalysis = useCallback(async () => {
     try {
-      setResult(null);
       const startData = await startAnalysis({
         entityType: 'token',
-        chain: 'solana',
         address: 'So11111111111111111111111111111111111111112', // SOL
         timeframe: '24h',
-        depth: 'normal'
+        depth: 'normal',
+        chain: 'solana'
       });
 
       subscribeToStream(startData.analysisId, (res) => {
@@ -29,11 +28,11 @@ export function SentinelCard() {
     } catch (err) {
       console.error("Sentinel Analysis failed:", err);
     }
-  };
+  }, [startAnalysis, subscribeToStream]);
 
   useEffect(() => {
     runAnalysis();
-  }, []);
+  }, [runAnalysis]);
 
   const isStreaming = status === 'streaming';
   const isReady = status === 'ready' && result;
@@ -98,8 +97,8 @@ export function SentinelCard() {
               <span className="font-bold text-lg">Solana</span>
               <Badge
                 className={`${result.finalScore >= 70 ? 'bg-green-500/20 text-green-400' :
-                    result.finalScore >= 40 ? 'bg-amber-500/20 text-amber-400' :
-                      'bg-red-500/20 text-red-400'
+                  result.finalScore >= 40 ? 'bg-amber-500/20 text-amber-400' :
+                    'bg-red-500/20 text-red-400'
                   } border-none`}
               >
                 <TrendingUp className="w-3 h-3 mr-1" /> {result.recommendation.action.replace('_', ' ')}

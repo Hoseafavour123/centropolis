@@ -1,0 +1,533 @@
+
+> binocs@0.1.0 lint
+> eslint
+
+
+/home/web3manuel/Desktop/centropolis/app/(dashboard)/admin/page.tsx
+  8:5  warning  'ArrowUpRight' is defined but never used    @typescript-eslint/no-unused-vars
+  9:5  warning  'ArrowDownRight' is defined but never used  @typescript-eslint/no-unused-vars
+
+/home/web3manuel/Desktop/centropolis/app/(dashboard)/admin/sentinel/page.tsx
+   7:5   warning  'ShieldAlert' is defined but never used                                                                       @typescript-eslint/no-unused-vars
+   8:5   warning  'ShieldCheck' is defined but never used                                                                       @typescript-eslint/no-unused-vars
+   9:5   warning  'ShieldQuestion' is defined but never used                                                                    @typescript-eslint/no-unused-vars
+  54:18  warning  'error' is defined but never used                                                                             @typescript-eslint/no-unused-vars
+  64:8   warning  React Hook useEffect has a missing dependency: 'fetchLogs'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+/home/web3manuel/Desktop/centropolis/app/(dashboard)/admin/transactions/page.tsx
+  56:18  warning  'error' is defined but never used                                                                                     @typescript-eslint/no-unused-vars
+  66:8   warning  React Hook useEffect has a missing dependency: 'fetchTransactions'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+/home/web3manuel/Desktop/centropolis/app/(dashboard)/admin/users/page.tsx
+   8:13  warning  'UserIcon' is defined but never used                                                                           @typescript-eslint/no-unused-vars
+  11:5   warning  'X' is defined but never used                                                                                  @typescript-eslint/no-unused-vars
+  62:18  warning  'error' is defined but never used                                                                              @typescript-eslint/no-unused-vars
+  72:8   warning  React Hook useEffect has a missing dependency: 'fetchUsers'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+  87:18  warning  'error' is defined but never used                                                                              @typescript-eslint/no-unused-vars
+
+/home/web3manuel/Desktop/centropolis/app/(dashboard)/orders/page.tsx
+  16:56  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  39:43  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/home/web3manuel/Desktop/centropolis/app/(dashboard)/sentinel/client/SentinelPageClient.tsx
+   9:34  warning  'SentinelResult' is defined but never used       @typescript-eslint/no-unused-vars
+  18:28  warning  'analysisId' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  27:13  warning  'cleanup' is assigned a value but never used     @typescript-eslint/no-unused-vars
+  32:14  warning  'error' is defined but never used                @typescript-eslint/no-unused-vars
+
+/home/web3manuel/Desktop/centropolis/app/(dashboard)/token/[chain]/[address]/client/TokenPageClient.tsx
+   12:10  warning  'Navbar' is defined but never used                                                                          @typescript-eslint/no-unused-vars
+   13:10  warning  'Sidebar' is defined but never used                                                                         @typescript-eslint/no-unused-vars
+   49:6   warning  React Hook useEffect has a missing dependency: 'address'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+  100:14  warning  'err' is defined but never used                                                                             @typescript-eslint/no-unused-vars
+  107:9   warning  'handleOpenTrade' is assigned a value but never used                                                        @typescript-eslint/no-unused-vars
+  131:57  error    `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`                                             react/no-unescaped-entities
+
+/home/web3manuel/Desktop/centropolis/app/(dashboard)/wallet/page.tsx
+  21:57  error    Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       @typescript-eslint/no-explicit-any
+  30:13  error    Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+/home/web3manuel/Desktop/centropolis/app/(dashboard)/wallet/page.tsx:30:13
+  28 |
+  29 |         if (queryAddress) {
+> 30 |             setTargetAddress(queryAddress);
+     |             ^^^^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  31 |             trackEvent('wallet_analysis_requested', { address: queryAddress });
+  32 |         } else if (connectedAddress) {
+  33 |             setTargetAddress(connectedAddress);  react-hooks/set-state-in-effect
+  58:37  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        @next/next/no-img-element
+
+/home/web3manuel/Desktop/centropolis/app/(dashboard)/watchlist/page.tsx
+  78:47  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/home/web3manuel/Desktop/centropolis/app/api/alerts/active/route.ts
+  5:27  warning  'req' is defined but never used  @typescript-eslint/no-unused-vars
+
+/home/web3manuel/Desktop/centropolis/app/api/flow/[chain]/[address]/route.ts
+  21:28  warning  'address' is defined but never used  @typescript-eslint/no-unused-vars
+
+/home/web3manuel/Desktop/centropolis/app/api/notifications/route.ts
+  5:27  warning  'req' is defined but never used  @typescript-eslint/no-unused-vars
+
+/home/web3manuel/Desktop/centropolis/app/api/price/[chain]/[address]/route.ts
+   4:10  warning  'PricePoint' is defined but never used          @typescript-eslint/no-unused-vars
+  60:11  warning  'chain' is assigned a value but never used      @typescript-eslint/no-unused-vars
+  65:9   warning  'timeframe' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+/home/web3manuel/Desktop/centropolis/app/api/price/sol/ohlcv/route.ts
+   26:7   warning  'DEXSCREENER_PAIR' is assigned a value but never used   @typescript-eslint/no-unused-vars
+   37:11  warning  'GeckoTerminalOHLCV' is defined but never used          @typescript-eslint/no-unused-vars
+   96:19  error    Unexpected any. Specify a different type                @typescript-eslint/no-explicit-any
+  111:13  error    'poolAddress' is never reassigned. Use 'const' instead  prefer-const
+  133:18  warning  'e' is defined but never used                           @typescript-eslint/no-unused-vars
+  156:19  error    Unexpected any. Specify a different type                @typescript-eslint/no-explicit-any
+
+/home/web3manuel/Desktop/centropolis/app/api/price/stream/[chain]/[address]/route.ts
+  26:7  error  'interval' is never reassigned. Use 'const' instead  prefer-const
+
+/home/web3manuel/Desktop/centropolis/app/api/sentinel/result/[id]/route.ts
+  26:30  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/home/web3manuel/Desktop/centropolis/app/api/sentinel/result/route.ts
+  44:28  warning  'address' is defined but never used         @typescript-eslint/no-unused-vars
+  70:9   warning  'chain' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+/home/web3manuel/Desktop/centropolis/app/api/sentinel/stream/[id]/route.ts
+  17:30  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  94:23  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/home/web3manuel/Desktop/centropolis/app/api/sentinel/summary/route.ts
+  42:28  warning  'address' is defined but never used         @typescript-eslint/no-unused-vars
+  68:9   warning  'chain' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+/home/web3manuel/Desktop/centropolis/app/api/social/[chain]/[address]/route.ts
+  92:51  warning  'address' is defined but never used  @typescript-eslint/no-unused-vars
+
+/home/web3manuel/Desktop/centropolis/app/api/telemetry/route.ts
+   5:28  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  40:12  warning  'error' is defined but never used         @typescript-eslint/no-unused-vars
+
+/home/web3manuel/Desktop/centropolis/app/api/trade/dispute/[txId]/route.ts
+  51:14  warning  'error' is defined but never used  @typescript-eslint/no-unused-vars
+
+/home/web3manuel/Desktop/centropolis/app/api/trade/quote/route.ts
+  100:50  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/home/web3manuel/Desktop/centropolis/app/api/trade/status/[txId]/route.ts
+  26:14  warning  'error' is defined but never used         @typescript-eslint/no-unused-vars
+  63:21  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/home/web3manuel/Desktop/centropolis/app/api/trade/swap/route.ts
+   63:58  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   67:58  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  136:65  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  153:47  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  215:21  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/home/web3manuel/Desktop/centropolis/app/api/user/watchlists/route.ts
+   5:27  warning  'req' is defined but never used           @typescript-eslint/no-unused-vars
+  67:21  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/home/web3manuel/Desktop/centropolis/app/api/wallet/[address]/balances/route.ts
+  26:48  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  49:34  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  49:42  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/home/web3manuel/Desktop/centropolis/app/api/watchlist/[id]/alerts/route.ts
+  68:21  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/home/web3manuel/Desktop/centropolis/components/Admin/AdminSidebar.tsx
+  11:5  warning  'Settings' is defined but never used  @typescript-eslint/no-unused-vars
+
+/home/web3manuel/Desktop/centropolis/components/Sentinel/ActionsPanel.tsx
+   6:41  warning  'Copy' is defined but never used  @typescript-eslint/no-unused-vars
+  41:14  warning  'err' is defined but never used   @typescript-eslint/no-unused-vars
+  53:14  warning  'err' is defined but never used   @typescript-eslint/no-unused-vars
+
+/home/web3manuel/Desktop/centropolis/components/Sentinel/RecommendationPanel.tsx
+   7:10  warning  'Button' is defined but never used                               @typescript-eslint/no-unused-vars
+  39:55  warning  'onOpenTrade' is defined but never used                          @typescript-eslint/no-unused-vars
+  43:9   warning  'isPositive' is assigned a value but never used                  @typescript-eslint/no-unused-vars
+  44:9   warning  'isDanger' is assigned a value but never used                    @typescript-eslint/no-unused-vars
+  86:13  error    `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+  86:38  error    `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+
+/home/web3manuel/Desktop/centropolis/components/Sentinel/RugDetectionPanel.tsx
+  24:7  warning  'severityIcons' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+/home/web3manuel/Desktop/centropolis/components/Sentinel/SentinelPanel.tsx
+  11:10  warning  'ActionsPanel' is defined but never used  @typescript-eslint/no-unused-vars
+  12:29  warning  'CardHeader' is defined but never used    @typescript-eslint/no-unused-vars
+  12:41  warning  'CardTitle' is defined but never used     @typescript-eslint/no-unused-vars
+  38:3   warning  'onSaveReport' is defined but never used  @typescript-eslint/no-unused-vars
+  39:3   warning  'onExplain' is defined but never used     @typescript-eslint/no-unused-vars
+
+/home/web3manuel/Desktop/centropolis/components/Settings/ApiKeysPanel.tsx
+  44:8   warning  React Hook React.useEffect has a missing dependency: 'fetchKeys'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+  67:18  warning  'error' is defined but never used                                                                                   @typescript-eslint/no-unused-vars
+  87:18  warning  'error' is defined but never used                                                                                   @typescript-eslint/no-unused-vars
+
+/home/web3manuel/Desktop/centropolis/components/Settings/BillingPanel.tsx
+  10:13  warning  'user' is assigned a value but never used     @typescript-eslint/no-unused-vars
+  11:18  warning  'setPlan' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+/home/web3manuel/Desktop/centropolis/components/Settings/ProfileSettings.tsx
+  33:25  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/home/web3manuel/Desktop/centropolis/components/Settings/SecuritySettings.tsx
+  9:13  warning  'user' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+/home/web3manuel/Desktop/centropolis/components/Shared/Navbar.tsx
+  16:11  warning  'walletAddress' is assigned a value but never used                                                                                                                                                                                                                                       @typescript-eslint/no-unused-vars
+  16:33  warning  'isConnected' is assigned a value but never used                                                                                                                                                                                                                                         @typescript-eslint/no-unused-vars
+  31:48  error    Unexpected any. Specify a different type                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+  48:15  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+/home/web3manuel/Desktop/centropolis/components/Shared/RightTradePanel.tsx
+   15:8   warning  'Link' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           @typescript-eslint/no-unused-vars
+   36:3   warning  'chain' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          @typescript-eslint/no-unused-vars
+   40:3   warning  'amountUsd' is assigned a value but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             @typescript-eslint/no-unused-vars
+   64:35  error    Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   @typescript-eslint/no-explicit-any
+   69:62  warning  'resetTrade' is assigned a value but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            @typescript-eslint/no-unused-vars
+   85:28  error    Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+/home/web3manuel/Desktop/centropolis/components/Shared/RightTradePanel.tsx:85:28
+  83 |   // Tick the quote age counter every second
+  84 |   useEffect(() => {
+> 85 |     if (!quoteTimestamp) { setQuoteAge(0); return; }
+     |                            ^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  86 |     const interval = setInterval(() => {
+  87 |       const age = Math.floor((Date.now() - quoteTimestamp) / 1000);
+  88 |       setQuoteAge(age);  react-hooks/set-state-in-effect
+  141:45  error    Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   @typescript-eslint/no-explicit-any
+
+/home/web3manuel/Desktop/centropolis/components/Shared/Sidebar.tsx
+  6:3  warning  'TrendingUp' is defined but never used  @typescript-eslint/no-unused-vars
+
+/home/web3manuel/Desktop/centropolis/components/Token/PriceChart.tsx
+  62:60  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/home/web3manuel/Desktop/centropolis/components/Token/TokenTabs/HoldersTab.tsx
+  4:10  warning  'Holder' is defined but never used  @typescript-eslint/no-unused-vars
+
+/home/web3manuel/Desktop/centropolis/components/Token/TokenTabs/OverviewTab.tsx
+    6:57  warning  'Activity' is defined but never used      @typescript-eslint/no-unused-vars
+  171:9   error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/home/web3manuel/Desktop/centropolis/components/Token/TokenTabs/PoolsTab.tsx
+   5:29  warning  'CardHeader' is defined but never used       @typescript-eslint/no-unused-vars
+   5:41  warning  'CardTitle' is defined but never used        @typescript-eslint/no-unused-vars
+  21:17  warning  'routes' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+/home/web3manuel/Desktop/centropolis/components/Token/TokenTabs/SocialTab.tsx
+  5:29  warning  'CardHeader' is defined but never used  @typescript-eslint/no-unused-vars
+  5:41  warning  'CardTitle' is defined but never used   @typescript-eslint/no-unused-vars
+
+/home/web3manuel/Desktop/centropolis/components/Token/TokenTabs/TrustedRouteBadge.tsx
+   6:10   warning  'Shield' is defined but never used                               @typescript-eslint/no-unused-vars
+  57:101  error    `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+
+/home/web3manuel/Desktop/centropolis/components/navigation/Navbar.tsx
+  44:17  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+/home/web3manuel/Desktop/centropolis/components/orders/OrderDetail.tsx
+    9:57   error  Unexpected any. Specify a different type                         @typescript-eslint/no-explicit-any
+  152:90   error  `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+  152:118  error  `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+
+/home/web3manuel/Desktop/centropolis/components/orders/OrderList.tsx
+  15:4   error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  70:40  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/home/web3manuel/Desktop/centropolis/components/providers/Providers.tsx
+  15:10  warning  'WalletAdapterNetwork' is defined but never used  @typescript-eslint/no-unused-vars
+  18:10  warning  'clusterApiUrl' is defined but never used         @typescript-eslint/no-unused-vars
+
+/home/web3manuel/Desktop/centropolis/components/sections/Hero.tsx
+  4:10  warning  'ArrowRight' is defined but never used  @typescript-eslint/no-unused-vars
+
+/home/web3manuel/Desktop/centropolis/components/sections/Problems.tsx
+  45:30  error  `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+
+/home/web3manuel/Desktop/centropolis/components/waitlist/WaitlistForm.tsx
+  39:18  warning  'error' is defined but never used  @typescript-eslint/no-unused-vars
+
+/home/web3manuel/Desktop/centropolis/components/wallet/PositionCards.tsx
+  59:33  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+  73:37  error    Unexpected any. Specify a different type                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+  78:37  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+/home/web3manuel/Desktop/centropolis/components/wallet/TxTimeline.tsx
+  55:36  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  57:59  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  58:58  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/home/web3manuel/Desktop/centropolis/components/wallet/WalletConnectButton.tsx
+  27:9  error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+/home/web3manuel/Desktop/centropolis/components/wallet/WalletConnectButton.tsx:27:9
+  25 |
+  26 |     useEffect(() => {
+> 27 |         setMounted(true);
+     |         ^^^^^^^^^^ Avoid calling setState() directly within an effect
+  28 |     }, []);
+  29 |
+  30 |     // Sync connecting state separately  react-hooks/set-state-in-effect
+
+/home/web3manuel/Desktop/centropolis/components/watchlist/AlertModal.tsx
+  12:11  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  36:25  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/home/web3manuel/Desktop/centropolis/components/watchlist/NotificationsFeed.tsx
+   5:34  warning  'Clock' is defined but never used         @typescript-eslint/no-unused-vars
+   5:41  warning  'X' is defined but never used             @typescript-eslint/no-unused-vars
+  59:47  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/home/web3manuel/Desktop/centropolis/components/watchlist/WatchlistCard.tsx
+  10:57  error    Unexpected any. Specify a different type                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+  18:35  error    Unexpected any. Specify a different type                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+  18:43  error    Unexpected any. Specify a different type                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+  23:50  error    Unexpected any. Specify a different type                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+  49:33  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+/home/web3manuel/Desktop/centropolis/features/dashboard/HeroChart.tsx
+   64:60  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  143:40  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/home/web3manuel/Desktop/centropolis/features/dashboard/QuickTrade.tsx
+    5:40  warning  'ShieldAlert' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          @typescript-eslint/no-unused-vars
+    5:53  warning  'ShieldCheck' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          @typescript-eslint/no-unused-vars
+    5:66  warning  'AlertTriangle' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        @typescript-eslint/no-unused-vars
+   46:37  warning  'fetchQuote' is assigned a value but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  @typescript-eslint/no-unused-vars
+   62:5   error    Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+/home/web3manuel/Desktop/centropolis/features/dashboard/QuickTrade.tsx:62:5
+  60 |   // Reset swap direction when a new token is selected
+  61 |   useEffect(() => {
+> 62 |     setIsSwapped(false);
+     |     ^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  63 |     setFromAmount("");
+  64 |   }, [selectedToken?.symbol]);
+  65 |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    react-hooks/set-state-in-effect
+   68:35  error    Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         @typescript-eslint/no-explicit-any
+  166:16  error    Error: Cannot create components during render
+
+Components created during render will reset their state each time they are created. Declare components outside of render.
+
+/home/web3manuel/Desktop/centropolis/features/dashboard/QuickTrade.tsx:166:16
+  164 |           <div className={cn("flex items-center justify-between p-3 rounded-xl bg-muted/50 border transition-colors", isOverBalance ? "border-red-500/50" : "border-border")}>
+  165 |             <div className="flex items-center gap-2">
+> 166 |               <TokenAvatar symbol={fromToken.symbol} />
+      |                ^^^^^^^^^^^ This component is created during render
+  167 |               <div>
+  168 |                 <div className="font-bold">{fromToken.symbol}</div>
+  169 |                 <div className="text-[10px] text-muted-foreground">
+
+/home/web3manuel/Desktop/centropolis/features/dashboard/QuickTrade.tsx:103:3
+  101 |   }
+  102 |
+> 103 |   function TokenAvatar({ symbol, size = 8 }: { symbol: string; size?: number }) {
+      |   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 104 |     return (
+      | ^^^^^^^^^^^^
+> 105 |       <div
+      | ^^^^^^^^^^^^
+> 106 |         className={`w-${size} h-${size} rounded-full flex items-center justify-center text-[10px] font-bold text-white shrink-0`}
+      | ^^^^^^^^^^^^
+> 107 |         style={{ background: symbolColor(symbol) }}
+      | ^^^^^^^^^^^^
+> 108 |       >
+      | ^^^^^^^^^^^^
+> 109 |         {initials(symbol)}
+      | ^^^^^^^^^^^^
+> 110 |       </div>
+      | ^^^^^^^^^^^^
+> 111 |     );
+      | ^^^^^^^^^^^^
+> 112 |   }
+      | ^^^^ The component is created during render here
+  113 |
+  114 |   return (
+  115 |     <Card className="glass-panel h-fit">  react-hooks/static-components
+  199:16  error    Error: Cannot create components during render
+
+Components created during render will reset their state each time they are created. Declare components outside of render.
+
+/home/web3manuel/Desktop/centropolis/features/dashboard/QuickTrade.tsx:199:16
+  197 |           <div className="flex items-center justify-between p-3 rounded-xl bg-muted/50 border border-border">
+  198 |             <div className="flex items-center gap-2">
+> 199 |               <TokenAvatar symbol={toToken.symbol} />
+      |                ^^^^^^^^^^^ This component is created during render
+  200 |               <div>
+  201 |                 <div className="font-bold">{toToken.symbol}</div>
+  202 |               </div>
+
+/home/web3manuel/Desktop/centropolis/features/dashboard/QuickTrade.tsx:103:3
+  101 |   }
+  102 |
+> 103 |   function TokenAvatar({ symbol, size = 8 }: { symbol: string; size?: number }) {
+      |   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 104 |     return (
+      | ^^^^^^^^^^^^
+> 105 |       <div
+      | ^^^^^^^^^^^^
+> 106 |         className={`w-${size} h-${size} rounded-full flex items-center justify-center text-[10px] font-bold text-white shrink-0`}
+      | ^^^^^^^^^^^^
+> 107 |         style={{ background: symbolColor(symbol) }}
+      | ^^^^^^^^^^^^
+> 108 |       >
+      | ^^^^^^^^^^^^
+> 109 |         {initials(symbol)}
+      | ^^^^^^^^^^^^
+> 110 |       </div>
+      | ^^^^^^^^^^^^
+> 111 |     );
+      | ^^^^^^^^^^^^
+> 112 |   }
+      | ^^^^ The component is created during render here
+  113 |
+  114 |   return (
+  115 |     <Card className="glass-panel h-fit">                                                                                                                      react-hooks/static-components
+
+/home/web3manuel/Desktop/centropolis/features/dashboard/SentinelCard.tsx
+  35:5  error    Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+/home/web3manuel/Desktop/centropolis/features/dashboard/SentinelCard.tsx:35:5
+  33 |
+  34 |   useEffect(() => {
+> 35 |     runAnalysis();
+     |     ^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  36 |   }, []);
+  37 |
+  38 |   const isStreaming = status === 'streaming';  react-hooks/set-state-in-effect
+  36:6  warning  React Hook useEffect has a missing dependency: 'runAnalysis'. Either include it or remove the dependency array                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       react-hooks/exhaustive-deps
+
+/home/web3manuel/Desktop/centropolis/features/dashboard/SolanaDashboardCard.tsx
+  12:13  warning  'theme' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+/home/web3manuel/Desktop/centropolis/fix-oklch.js
+  1:12  error  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+
+/home/web3manuel/Desktop/centropolis/hooks/use-toast.ts
+  6:10  warning  'ToastProps' is defined but never used  @typescript-eslint/no-unused-vars
+
+/home/web3manuel/Desktop/centropolis/hooks/useAnalytics.ts
+  6:82  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/home/web3manuel/Desktop/centropolis/hooks/usePriceStream.ts
+  5:29  warning  'useCallback' is defined but never used  @typescript-eslint/no-unused-vars
+
+/home/web3manuel/Desktop/centropolis/hooks/useSentinelAnalyze.ts
+   22:9   warning  'abortControllerRef' is assigned a value but never used                                                                                             @typescript-eslint/no-unused-vars
+  143:12  error    React Hook "useQuery" cannot be called inside a callback. React Hooks must be called in a React function component or a custom React Hook function  react-hooks/rules-of-hooks
+  171:18  error    Unexpected any. Specify a different type                                                                                                            @typescript-eslint/no-explicit-any
+  174:16  error    Unexpected any. Specify a different type                                                                                                            @typescript-eslint/no-explicit-any
+  175:10  error    Unexpected any. Specify a different type                                                                                                            @typescript-eslint/no-explicit-any
+  210:14  warning  'e' is defined but never used                                                                                                                       @typescript-eslint/no-unused-vars
+
+/home/web3manuel/Desktop/centropolis/hooks/useTrade.ts
+   59:31  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  211:23  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/home/web3manuel/Desktop/centropolis/instrumentation.ts
+  4:17  warning  'alertWorker' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+/home/web3manuel/Desktop/centropolis/lib/admin.ts
+  1:16  warning  'currentUser' is defined but never used  @typescript-eslint/no-unused-vars
+
+/home/web3manuel/Desktop/centropolis/lib/prisma.ts
+  9:5  warning  Unused eslint-disable directive (no problems were reported from 'no-var')
+
+/home/web3manuel/Desktop/centropolis/lib/services/heliusTx.ts
+  38:65  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  59:78  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  64:66  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/home/web3manuel/Desktop/centropolis/lib/utils/csvExport.ts
+  10:39  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/home/web3manuel/Desktop/centropolis/mocks/token.ts
+  11:30  warning  'ws' is defined but never used  @typescript-eslint/no-unused-vars
+
+/home/web3manuel/Desktop/centropolis/scripts/promote-admin.js
+  1:26  error  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+
+/home/web3manuel/Desktop/centropolis/services/ai/sentinelAI.ts
+  72:18  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  73:21  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/home/web3manuel/Desktop/centropolis/services/alertWorker.ts
+  44:41  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  44:49  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/home/web3manuel/Desktop/centropolis/services/heliusService.ts
+  74:25  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/home/web3manuel/Desktop/centropolis/services/sentinelEngine.ts
+   1:10  warning  'dexscreenerService' is defined but never used  @typescript-eslint/no-unused-vars
+  50:50  error    Unexpected any. Specify a different type        @typescript-eslint/no-explicit-any
+  51:53  error    Unexpected any. Specify a different type        @typescript-eslint/no-explicit-any
+  51:61  error    Unexpected any. Specify a different type        @typescript-eslint/no-explicit-any
+  83:66  error    Unexpected any. Specify a different type        @typescript-eslint/no-explicit-any
+
+/home/web3manuel/Desktop/centropolis/services/token/dexscreenerTokenService.ts
+  22:29  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  23:27  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  23:35  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/home/web3manuel/Desktop/centropolis/services/token/heliusTokenService.ts
+  34:19  warning  'authorities' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+/home/web3manuel/Desktop/centropolis/services/token/jupiterTokenService.ts
+  16:16  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  66:48  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/home/web3manuel/Desktop/centropolis/services/token/tokenAggregator.ts
+  21:27  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/home/web3manuel/Desktop/centropolis/tailwind.config.js
+  123:13  error  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+
+/home/web3manuel/Desktop/centropolis/tests/HoldersTable.test.tsx
+  3:26  warning  'fireEvent' is defined but never used  @typescript-eslint/no-unused-vars
+
+/home/web3manuel/Desktop/centropolis/types/sentinel.ts
+  12:16  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  91:14  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/home/web3manuel/Desktop/centropolis/types/token.ts
+  80:10  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+✖ 198 problems (93 errors, 105 warnings)
+  1 error and 1 warning potentially fixable with the `--fix` option.
+
