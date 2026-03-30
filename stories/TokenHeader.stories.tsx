@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react';
 import { TokenHeader } from '@/components/Token/TokenHeader';
-import { mockTokenMeta } from '@/mocks/token.mock';
+import { mockTokenMeta } from '@/mocks/token';
 
 const meta: Meta<typeof TokenHeader> = {
   component: TokenHeader,
@@ -14,7 +14,7 @@ export const Safe: Story = {
   args: {
     meta: mockTokenMeta,
     safetyScore: 85,
-    onAddToWatchlist: () => {},
+    onAddToWatchlist: () => { },
   },
 };
 
@@ -22,7 +22,7 @@ export const Caution: Story = {
   args: {
     meta: { ...mockTokenMeta, symbol: 'RISKY', name: 'Risky Token', verified: false },
     safetyScore: 55,
-    onAddToWatchlist: () => {},
+    onAddToWatchlist: () => { },
   },
 };
 
@@ -30,7 +30,7 @@ export const Danger: Story = {
   args: {
     meta: { ...mockTokenMeta, symbol: 'SCAM', name: 'Scam Token', verified: false },
     safetyScore: 25,
-    onAddToWatchlist: () => {},
+    onAddToWatchlist: () => { },
   },
 };
 
@@ -38,7 +38,7 @@ export const Watchlisted: Story = {
   args: {
     meta: mockTokenMeta,
     safetyScore: 72,
-    onAddToWatchlist: () => {},
+    onAddToWatchlist: () => { },
     isWatchlisted: true,
   },
 };

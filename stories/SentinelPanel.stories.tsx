@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react';
 import { SentinelPanel } from '@/components/Sentinel/SentinelPanel';
-import { mockSentinelResult } from '@/mocks/sentinel.mock';
+import { mockSentinelResult } from '@/mocks/sentinel';
 
 const meta: Meta<typeof SentinelPanel> = {
   component: SentinelPanel,

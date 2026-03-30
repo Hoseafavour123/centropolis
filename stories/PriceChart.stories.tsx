@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react';
 import { PriceChart } from '@/components/Token/PriceChart';
-import { generateCandles } from '@/mocks/token.mock';
+import { generateCandles } from '@/mocks/token';
 
 const meta: Meta<typeof PriceChart> = {
   component: PriceChart,
