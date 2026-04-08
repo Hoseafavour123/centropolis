@@ -89,7 +89,12 @@ export async function GET(
         // 6. Send Done
         sendSSE({
           type: "done",
-          payload: finalJson
+          payload: {
+            ...finalJson,
+            tokenAddress: data.token?.address,
+            tokenSymbol: data.token?.symbol,
+            tokenName: data.token?.name
+          }
         });
 
         controller.close();

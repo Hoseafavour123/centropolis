@@ -88,6 +88,9 @@ export function useSentinelAnalyze() {
               dataSources: [], // Would come from meta
               createdAt: new Date().toISOString(),
               streamingText: accumulatedTextRef.current,
+              tokenAddress: msg.payload.tokenAddress,
+              tokenSymbol: msg.payload.tokenSymbol,
+              tokenName: msg.payload.tokenName,
             };
 
             setStatus('ready');

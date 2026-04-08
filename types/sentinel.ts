@@ -78,6 +78,9 @@ export type SSEMessage =
       rugDetection: RugDetectionResult;
       recommendation: Recommendation;
       technicalExplanation: string;
+      tokenAddress?: string;
+      tokenSymbol?: string;
+      tokenName?: string;
     }
   }
   | { type: 'error'; payload: { message: string } };
@@ -104,4 +107,7 @@ export interface SentinelResult {
   technicalExplanation: string;
   createdAt: string;
   streamingText?: string;
+  tokenAddress?: string;
+  tokenSymbol?: string;
+  tokenName?: string;
 }

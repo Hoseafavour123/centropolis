@@ -17,6 +17,7 @@ import { cn } from '@/lib/utils';
 import { useWalletData } from '@/hooks/useWalletData';
 import { useTrade } from '@/hooks/useTrade';
 import { useWalletStore } from '@/store/useWalletStore';
+import { useTradeTokenStore } from '@/store/useTradeTokenStore';
 
 const SOL_MINT = "So11111111111111111111111111111111111111112";
 const USDC_MINT = "EPjFW36DP7mVQC7i57K6BgnUpWMT8Dz6enwbp9z96Utm";
@@ -45,12 +46,26 @@ export function RightTradePanel({
   const [from, setFrom] = useState(fromToken);
   const [to, setTo] = useState(toAddress || toToken);
 
-  // If the passed toToken is a long address (like from the URL), shorten it for display
   const [toSymbol, setToSymbol] = useState(formatSymbol(toToken));
   const [fromSymbol, setFromSymbol] = useState(formatSymbol(fromToken));
 
   const [amount, setAmount] = useState("0.0");
   const [showDetails, setShowDetails] = useState(true);
+
+  // Sync with global token store dynamically
+  const { selectedToken } = useTradeTokenStore();
+
+  useEffect(() => {
+    if (selectedToken) {
+      if (selectedToken.mint) setTo(selectedToken.mint);
+      setToSymbol(formatSymbol(selectedToken.symbol));
+      // Auto-set 'from' to USDC if moving out of SOL for a highly specific token play
+      if (selectedToken.mint && from === 'SOL') {
+        setFrom('USDC');
+        setFromSymbol('USDC');
+      }
+    }
+  }, [selectedToken]);
 
   // Quote expiry countdown
   const [quoteAge, setQuoteAge] = useState(0);

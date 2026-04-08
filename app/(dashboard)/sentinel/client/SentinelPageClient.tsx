@@ -11,6 +11,8 @@ import { useGlobalStore } from '@/lib/store/globalStore';
 import { toast } from 'sonner';
 import { useSentinelStore } from '@/store/useSentinelStore';
 
+import { useTradeTokenStore } from '@/store/useTradeTokenStore';
+
 export function SentinelPageClient() {
   const router = useRouter();
   const { selectedChain } = useGlobalStore();
@@ -26,6 +28,13 @@ export function SentinelPageClient() {
       // Start streaming
       const cleanup = subscribeToStream(id, (result) => {
         setCurrentAnalysis(result);
+        if (result.tokenAddress) {
+          useTradeTokenStore.getState().setSelectedToken({
+            symbol: result.tokenSymbol || 'TKN',
+            name: result.tokenName || 'Analyzed Token',
+            mint: result.tokenAddress
+          });
+        }
       });
 
       // Cleanup on unmount handled by hook
@@ -36,13 +45,17 @@ export function SentinelPageClient() {
 
   const handleOpenTrade = () => {
     if (!currentAnalysis) return;
-    const params = new URLSearchParams({
-      chain: selectedChain,
-      from: 'USDC',
-      to: 'SOL', // Would derive from analysis
-      prefill: 'sentinel',
-    });
-    router.push(`/trade?${params.toString()}`);
+
+    if (currentAnalysis.tokenAddress) {
+      useTradeTokenStore.getState().setSelectedToken({
+        symbol: currentAnalysis.tokenSymbol || 'TKN',
+        name: currentAnalysis.tokenName || 'Analyzed Token',
+        mint: currentAnalysis.tokenAddress
+      });
+      toast.success("Token preloaded in Quick Trade panel!");
+    } else {
+      toast.error("No token address available to trade.");
+    }
   };
 
   return (
