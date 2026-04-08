@@ -74,7 +74,9 @@ export async function GET(
         }
 
         // 5. Store in DB
-        const score = finalJson.finalScore || 0;
+        const parsedScore = parseInt(finalJson.finalScore, 10);
+        const score = isNaN(parsedScore) ? 0 : parsedScore;
+
         await prisma.sentinelAnalysis.update({
           where: { id },
           data: {

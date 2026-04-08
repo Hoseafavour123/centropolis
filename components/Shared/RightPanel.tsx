@@ -1,11 +1,14 @@
 "use client"
 
-import { QuickTrade } from "@/features/dashboard/QuickTrade";
+import { RightTradePanel } from "@/components/Shared/RightTradePanel";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Wallet } from "lucide-react";
 import { useWalletData } from "@/hooks/useWalletData";
 import { useQuery } from "@tanstack/react-query";
 import { MarketCoin } from "@/services/coingeckoService";
+
+// Solana mainnet USDT mint address
+const USDT_MINT = "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB";
 
 export function RightPanel() {
   const { balance, isLoading, isError } = useWalletData();
@@ -22,7 +25,13 @@ export function RightPanel() {
 
   return (
     <div className="space-y-6">
-      <QuickTrade />
+      {/* Trade Panel: pre-filled with SOL → USDT */}
+      <RightTradePanel
+        chain="solana"
+        fromToken="SOL"
+        toToken="USDT"
+        toAddress={USDT_MINT}
+      />
 
       {/* Market Overview Mini */}
       <Card className="glass-panel">

@@ -87,9 +87,9 @@ export const tokenAggregator = {
         return {
             chain,
             address,
-            symbol: heliusData.symbol || 'TKN',
-            name: heliusData.name || 'Unknown Token',
-            logoUrl: heliusData.logoUrl || '/tokens/generic.png',
+            symbol: heliusData.symbol || marketData.symbol || 'TKN',
+            name: heliusData.name || marketData.name || 'Unknown Token',
+            logoUrl: heliusData.logoUrl || marketData.imageUrl || '/tokens/generic.png',
             marketCapUsd: marketCapUsd > 0 ? marketCapUsd : marketData.liquidity ? marketData.liquidity * 2 : 0,
             totalSupply: totalSupply,
             decimals: decimals,

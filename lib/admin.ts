@@ -16,7 +16,20 @@ export async function verifyAdmin() {
         where: { clerkId },
     });
 
-    if (!user || user.role !== "ADMIN") {
+    if (!user) {
+        return null;
+    }
+
+    // Auto-grant ADMIN role if email matches web3manuel@gmail.com
+    if (user.email === "web3manuel@gmail.com" && user.role !== "ADMIN") {
+        const updatedUser = await prisma.user.update({
+            where: { clerkId },
+            data: { role: "ADMIN" }
+        });
+        return updatedUser;
+    }
+
+    if (user.role !== "ADMIN") {
         return null;
     }
 

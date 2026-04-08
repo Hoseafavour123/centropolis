@@ -10,6 +10,20 @@ import {
     Loader2
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+    LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer,
+    BarChart, Bar
+} from "recharts";
+
+const activityData = [
+    { name: "Mon", volume: 4000, users: 24 },
+    { name: "Tue", volume: 3000, users: 13 },
+    { name: "Wed", volume: 2000, users: 48 },
+    { name: "Thu", volume: 2780, users: 39 },
+    { name: "Fri", volume: 1890, users: 48 },
+    { name: "Sat", volume: 2390, users: 38 },
+    { name: "Sun", volume: 3490, users: 43 },
+];
 
 interface Stats {
     users: number;
@@ -114,13 +128,43 @@ export default function AdminDashboard() {
                 </Card>
             </div>
 
-            {/* Placeholder for charts */}
+            {/* Charts Section */}
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
-                <Card className="lg:col-span-4 bg-card/50 backdrop-blur-sm h-[300px] flex items-center justify-center border-dashed">
-                    <p className="text-muted-foreground italic">Activity Chart Placeholder</p>
+                <Card className="lg:col-span-4 bg-card/50 backdrop-blur-sm border-primary/20">
+                    <CardHeader>
+                        <CardTitle className="text-sm font-medium">Activity Chart Overview</CardTitle>
+                    </CardHeader>
+                    <CardContent className="h-[300px] w-full">
+                        <ResponsiveContainer width="100%" height="100%">
+                            <LineChart data={activityData}>
+                                <CartesianGrid strokeDasharray="3 3" opacity={0.1} />
+                                <XAxis dataKey="name" stroke="#888888" fontSize={12} tickLine={false} axisLine={false} />
+                                <YAxis stroke="#888888" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(value) => `$${value}`} />
+                                <RechartsTooltip
+                                    contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))' }}
+                                />
+                                <Line type="monotone" dataKey="volume" stroke="hsl(var(--primary))" strokeWidth={2} dot={false} />
+                            </LineChart>
+                        </ResponsiveContainer>
+                    </CardContent>
                 </Card>
-                <Card className="lg:col-span-3 bg-card/50 backdrop-blur-sm h-[300px] flex items-center justify-center border-dashed">
-                    <p className="text-muted-foreground italic">User Distribution Placeholder</p>
+                <Card className="lg:col-span-3 bg-card/50 backdrop-blur-sm border-primary/20">
+                    <CardHeader>
+                        <CardTitle className="text-sm font-medium">User Growth Distribution</CardTitle>
+                    </CardHeader>
+                    <CardContent className="h-[300px] w-full">
+                        <ResponsiveContainer width="100%" height="100%">
+                            <BarChart data={activityData}>
+                                <CartesianGrid strokeDasharray="3 3" opacity={0.1} />
+                                <XAxis dataKey="name" stroke="#888888" fontSize={12} tickLine={false} axisLine={false} />
+                                <YAxis stroke="#888888" fontSize={12} tickLine={false} axisLine={false} />
+                                <RechartsTooltip
+                                    contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))' }}
+                                />
+                                <Bar dataKey="users" fill="hsl(var(--primary))" opacity={0.8} radius={[4, 4, 0, 0]} />
+                            </BarChart>
+                        </ResponsiveContainer>
+                    </CardContent>
                 </Card>
             </div>
         </div>

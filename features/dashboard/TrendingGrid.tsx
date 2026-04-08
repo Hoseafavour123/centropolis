@@ -198,18 +198,12 @@ export function TrendingGrid() {
   });
 
   function handleTokenClick(token: Token) {
-    // If already selected, deselect (reset to default SOL/USDC)
-    if (selectedToken?.symbol === token.symbol) {
-      setSelectedToken(null);
-    } else {
-      setSelectedToken({
-        symbol: token.symbol,
-        name: token.name,
-        priceUsd: token.price,
-        // Now using the actual mint address for trading
-        mint: token.address,
-      });
-    }
+    const searchParams = new URLSearchParams({
+      symbol: token.symbol,
+      name: token.name,
+      price: String(token.price),
+    });
+    router.push(`/token/${token.chain || 'solana'}/${token.address}?${searchParams.toString()}`);
   }
 
   return (

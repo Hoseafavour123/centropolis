@@ -103,7 +103,8 @@ export function RightTradePanel({
   }, [handleGetQuote]);
 
   // Parsed output amount with correct decimals
-  const outDecimals = to === "USDC" ? 6 : 9;
+  // USDC and USDT both use 6 decimals on Solana; default everything else to 9
+  const outDecimals = (to === "USDC" || toSymbol === "USDT") ? 6 : 9;
   const outAmountRaw = quote ? parseInt(quote.outAmount) / Math.pow(10, outDecimals) : 0;
   const inAmountRaw = parseFloat(amount || "0");
 

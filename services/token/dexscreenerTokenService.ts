@@ -5,6 +5,9 @@ export interface DexScreenerMarketData {
     volume24h: number;
     liquidity: number;
     change24h: number;
+    symbol?: string;
+    name?: string;
+    imageUrl?: string;
 }
 
 export const dexscreenerTokenService = {
@@ -27,6 +30,9 @@ export const dexscreenerTokenService = {
                 volume24h: solanaPair.volume?.h24 || 0,
                 liquidity: solanaPair.liquidity?.usd || 0,
                 change24h: solanaPair.priceChange?.h24 || 0,
+                symbol: solanaPair.baseToken?.symbol,
+                name: solanaPair.baseToken?.name,
+                imageUrl: solanaPair.info?.imageUrl,
             };
         } catch (error) {
             console.error('[dexscreenerTokenService] getTokenMarketData error:', error);

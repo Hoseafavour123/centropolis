@@ -90,7 +90,7 @@ JSON STRUCTURE:
     "liquidityDepth": ${data.token.liquidity},
     "topHoldersPercent": ${data.holders.concentration},
     "recentSmartBuys": "[Integrate from transaction history context]",
-    "volatilityIndex": "[Calculate from price changes and volume]"
+    "volatilityIndex": "[Number: Calculate from price changes and volume]"
   },
   "rugDetection": {
     "isRug": ${rugAnalysis.isRug},
@@ -124,8 +124,7 @@ Raw Market Data: ${JSON.stringify(data.token, null, 2)}`;
       model: "gpt-4o",
       messages: [{ role: "system", content: prompt }],
       stream: true,
-      // We don't use json_object here because some frontends struggle to incrementally parse json_object streams, 
-      // but the prompt strongly enforces JSON output.
+      response_format: { type: "json_object" },
     });
 
     return stream;

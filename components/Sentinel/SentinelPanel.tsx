@@ -73,9 +73,11 @@ export function SentinelPanel({
           <p className="text-sm text-muted-foreground">
             {isLoading
               ? 'Streaming real-time analysis...'
-              : displayData
-                ? `Completed ${new Date(displayData.createdAt).toLocaleString()}`
-                : 'Processing...'
+              : status === 'failed'
+                ? 'Analysis failed'
+                : displayData
+                  ? `Completed ${new Date(displayData.createdAt).toLocaleString()}`
+                  : 'Processing...'
             }
           </p>
         </div>
@@ -141,7 +143,7 @@ export function SentinelPanel({
           />
           <MetricCard
             label="Volatility"
-            value={displayData.metrics.volatilityIndex.toFixed(1) + '%'}
+            value={Number(displayData.metrics.volatilityIndex || 0).toFixed(1) + '%'}
             change="Normal"
             neutral
           />

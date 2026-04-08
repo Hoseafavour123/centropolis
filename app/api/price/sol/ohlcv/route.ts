@@ -135,7 +135,7 @@ export async function GET(req: NextRequest) {
             gtResponse = await fetchGT(orcaPool);
         }
 
-        const data = gtResponse.data;
+        const data = gtResponse?.data;
         if (data?.data?.attributes?.ohlcv_list && data.data.attributes.ohlcv_list.length > 0) {
             const rawList = data.data.attributes.ohlcv_list;
             const candles = rawList.map((c: number[]) => ({
@@ -158,14 +158,19 @@ export async function GET(req: NextRequest) {
     }
 
     // --- Final fallback: generate realistic candles seeded from CoinGecko current price ---
+    let currentPrice: number = 136;
     try {
         const { data: cgData } = await axios.get(
             "https://api.coingecko.com/api/v3/simple/price",
             { params: { ids: "solana", vs_currencies: "usd" }, timeout: 6_000 }
         );
-        const currentPrice: number = cgData?.solana?.usd ?? 136;
-        const candles = generateRealisticCandles(currentPrice, limit, secondsPerCandle[interval] ?? 3600);
+        currentPrice = cgData?.solana?.usd ?? 136;
+    } catch (e) {
+        console.warn("[/api/price/sol/ohlcv] CoinGecko failed (likely 429), using default seed price.");
+    }
 
+    try {
+        const candles = generateRealisticCandles(currentPrice, limit, secondsPerCandle[interval] ?? 3600);
         return NextResponse.json(candles, {
             headers: { "Cache-Control": "public, s-maxage=10, stale-while-revalidate=20" },
         });
