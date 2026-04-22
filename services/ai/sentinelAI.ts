@@ -128,5 +128,73 @@ Raw Market Data: ${JSON.stringify(data.token, null, 2)}`;
     });
 
     return stream;
-  }
+  },
+
+  /**
+   * STEP C (non-streaming): Final Decision Engine.
+   * Same prompt as streamFinalDecision but awaits the full JSON response.
+   * Used by the Sentinel Chat tool-calling pipeline where the LLM consumes the
+   * result rather than the user streaming it directly.
+   */
+  async finalDecision(
+    data: NormalizedSentinelData,
+    rugAnalysis: any,
+    marketAnalysis: any
+  ) {
+    const prompt = `You are Sentinel AI, a high-level on-chain security and market analysis engine.
+Combine all analysis (rug risk and market health) for the token ${data.token.name} (${data.token.symbol}) and output a FINAL assessment.
+
+OUTPUT REQUIREMENTS:
+- Return ONLY a STRICT JSON object. No markdown. No preamble.
+- MANDATORY: Mention the token name "${data.token.name}" and symbol "${data.token.symbol}" in both "summary" and "technicalExplanation".
+- DYNAMIC: Calculate scores from the provided CONTEXT. No hardcoded values.
+
+JSON STRUCTURE:
+{
+  "summary": "High-level summary of ${data.token.name}'s safety and market potential. Must mention ${data.token.symbol}.",
+  "finalScore": "[Number 0-100]",
+  "metrics": {
+    "liquidityDepth": ${data.token.liquidity},
+    "topHoldersPercent": ${data.holders.concentration},
+    "recentSmartBuys": "[Integrate from tx history]",
+    "volatilityIndex": "[Calculate from price changes and volume]"
+  },
+  "rugDetection": {
+    "isRug": ${rugAnalysis.isRug},
+    "confidence": ${rugAnalysis.confidence},
+    "riskLevel": "${rugAnalysis.riskLevel}",
+    "indicators": ${JSON.stringify(rugAnalysis.indicators)},
+    "summary": "${rugAnalysis.summary}"
+  },
+  "recommendation": {
+    "action": "[one of: 'buy', 'hold', 'sell', 'avoid']",
+    "summary": "[Brief justification]",
+    "detailedAdvice": "[Entry/exit or caution strategy]",
+    "timeHorizon": "[one of: 'short', 'medium', 'long']",
+    "confidence": "[Number 0-100]"
+  },
+  "evidence": [
+    { "id": "1", "type": "onchain", "title": "Liquidity", "timestamp": "${new Date().toISOString()}", "content": "..." },
+    { "id": "2", "type": "market", "title": "Market Sentiment", "timestamp": "${new Date().toISOString()}", "content": "..." }
+  ],
+  "technicalExplanation": "Detailed technical breakdown of ${data.token.name} (${data.token.symbol})."
+}
+
+CONTEXT:
+Token Identity: Name: ${data.token.name}, Symbol: ${data.token.symbol}, Address: ${data.token.address}
+Rug Analysis: ${JSON.stringify(rugAnalysis, null, 2)}
+Market Analysis: ${JSON.stringify(marketAnalysis, null, 2)}
+Raw Market Data: ${JSON.stringify(data.token, null, 2)}`;
+
+    const response = await openai.chat.completions.create({
+      model: "gpt-4o",
+      messages: [{ role: "system", content: prompt }],
+      response_format: { type: "json_object" },
+      temperature: 0.3,
+    });
+
+    const raw = response.choices[0].message.content || "{}";
+    const cleaned = raw.replace(/```json/g, "").replace(/```/g, "").trim();
+    return JSON.parse(cleaned);
+  },
 };

@@ -5,11 +5,14 @@ import { useRouter } from 'next/navigation';
 import { SentinelQueryBar } from '@/components/Sentinel/SentinelQueryBar';
 import { SentinelPanel } from '@/components/Sentinel/SentinelPanel';
 import { ActionsPanel } from '@/components/Sentinel/ActionsPanel';
+import { SentinelChatPanel } from '@/components/SentinelChat/SentinelChatPanel';
 import { useSentinelAnalyze } from '@/hooks/useSentinelAnalyze';
 import { SentinelAnalyzeRequest, SentinelResult } from '@/types/sentinel';
 import { useGlobalStore } from '@/lib/store/globalStore';
 import { toast } from 'sonner';
 import { useSentinelStore } from '@/store/useSentinelStore';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Activity, Bot } from 'lucide-react';
 
 import { useTradeTokenStore } from '@/store/useTradeTokenStore';
 
@@ -59,40 +62,59 @@ export function SentinelPageClient() {
   };
 
   return (
-    <div className="grid grid-cols-1 xl:grid-cols-12 gap-6">
-      {/* Left Column - Query */}
-      <div className="xl:col-span-3 space-y-6">
-        <SentinelQueryBar
-          defaultChain={selectedChain}
-          onAnalyze={handleAnalyze}
-          isLoading={status === 'streaming'}
-        />
-      </div>
+    <Tabs defaultValue="analyze" className="w-full">
+      <TabsList className="mb-4">
+        <TabsTrigger value="analyze">
+          <Activity className="w-3.5 h-3.5" />
+          Analyze
+        </TabsTrigger>
+        <TabsTrigger value="chat">
+          <Bot className="w-3.5 h-3.5" />
+          Chat
+        </TabsTrigger>
+      </TabsList>
 
-      {/* Main Column - Analysis */}
-      <div className="xl:col-span-6">
-        <SentinelPanel
-          analysis={currentAnalysis}
-          streamingText={streamingText}
-          status={status}
-          onOpenTrade={handleOpenTrade}
-          onSaveReport={(id) => console.log('Save', id)}
-          onExplain={() => console.log('Explain')}
-        />
-      </div>
-
-      {/* Right Column - Actions */}
-      <div className="xl:col-span-3">
-        <div className="sticky top-24">
-          {currentAnalysis && (
-            <ActionsPanel
-              analysis={currentAnalysis}
-              onOpenTrade={handleOpenTrade}
-              onSave={(id) => console.log('Save', id)}
+      <TabsContent value="analyze">
+        <div className="grid grid-cols-1 xl:grid-cols-12 gap-6">
+          {/* Left Column - Query */}
+          <div className="xl:col-span-3 space-y-6">
+            <SentinelQueryBar
+              defaultChain={selectedChain}
+              onAnalyze={handleAnalyze}
+              isLoading={status === 'streaming'}
             />
-          )}
+          </div>
+
+          {/* Main Column - Analysis */}
+          <div className="xl:col-span-6">
+            <SentinelPanel
+              analysis={currentAnalysis}
+              streamingText={streamingText}
+              status={status}
+              onOpenTrade={handleOpenTrade}
+              onSaveReport={(id) => console.log('Save', id)}
+              onExplain={() => console.log('Explain')}
+            />
+          </div>
+
+          {/* Right Column - Actions */}
+          <div className="xl:col-span-3">
+            <div className="sticky top-24">
+              {currentAnalysis && (
+                <ActionsPanel
+                  analysis={currentAnalysis}
+                  onOpenTrade={handleOpenTrade}
+                  onSave={(id) => console.log('Save', id)}
+                />
+              )}
+            </div>
+          </div>
         </div>
-      </div>
-    </div>
+      </TabsContent>
+
+      <TabsContent value="chat">
+        <SentinelChatPanel />
+      </TabsContent>
+    </Tabs>
   );
 }

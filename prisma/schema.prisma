@@ -25,6 +25,7 @@ model User {
   twoFactorEnabled Boolean  @default(false)
   apiKeys          ApiKey[]
   notifications    Notification[]
+  sentinelChats    SentinelChat[]
 }
 
 model ApiKey {
@@ -92,6 +93,37 @@ model SentinelAnalysis {
   createdAt    DateTime @default(now())
 
   user         User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model SentinelChat {
+  id               String    @id @default(uuid())
+  userId           String
+  title            String    @default("New chat")
+  lastTokenAddress String?
+  lastTokenChain   String?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+  deletedAt        DateTime?
+
+  user     User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  messages SentinelChatMessage[]
+
+  @@index([userId, deletedAt, updatedAt])
+}
+
+model SentinelChatMessage {
+  id         String   @id @default(uuid())
+  chatId     String
+  role       String   // 'user' | 'assistant' | 'tool' | 'system'
+  content    String?  @db.Text
+  toolCalls  Json?    // assistant role: [{ id, name, arguments }]
+  toolCallId String?  // tool role: id of the assistant tool_call being answered
+  toolName   String?  // tool role: denormalized tool name for export/display
+  createdAt  DateTime @default(now())
+
+  chat SentinelChat @relation(fields: [chatId], references: [id], onDelete: Cascade)
+
+  @@index([chatId, createdAt])
 }
 
 model Watchlist {
