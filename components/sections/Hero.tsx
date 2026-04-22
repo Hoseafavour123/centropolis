@@ -2,10 +2,12 @@
 
 import { motion } from 'framer-motion'
 import { ArrowRight, Sparkles, Shield, Zap } from 'lucide-react'
+import { useUser } from '@clerk/nextjs'
 import { Button } from '../ui/Btn'
 import { GradientText } from '../ui/GradientText'
 
 export function Hero() {
+  const { isSignedIn } = useUser()
   return (
     <section className="relative min-h-screen flex items-center justify-center pt-20 overflow-hidden">
       {/* Animated grid background */}
@@ -22,6 +24,15 @@ export function Hero() {
 
       <div className="relative z-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
         {/* Badge */}
+        <motion.div
+          className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-indigo-500/10 border border-indigo-500/30 mb-8"
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+        >
+          <Sparkles size={14} className="text-indigo-400" />
+          <span className="text-xs text-indigo-200">Introducing the Sentinel Chat Terminal</span>
+        </motion.div>
 
         {/* Main Headline */}
         <motion.h1
@@ -30,10 +41,10 @@ export function Hero() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.2 }}
         >
-          Trade with{' '}
-          <GradientText>Intelligence</GradientText>
+          Chat your way to{' '}
+          <GradientText>smarter trades</GradientText>
           <br />
-          <span className="text-white">Not Information Overload</span>
+          <span className="text-white">on Solana</span>
         </motion.h1>
 
         {/* Subheadline */}
@@ -43,8 +54,8 @@ export function Hero() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.4 }}
         >
-          Binocs combines AI-powered analysis with one-click execution.
-          The first trading terminal that actually thinks for you.
+          Binocs turns token research into a conversation. Ask the Sentinel to analyze rugs,
+          check your portfolio, or quote a swap — and execute without ever leaving the chat.
         </motion.p>
 
         {/* CTA Buttons */}
@@ -54,9 +65,25 @@ export function Hero() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.6 }}
         >
-          <Button href="/waitlist" size="lg" className="cursor-pointer flex items-center gap-2">
-            Join Waitlist
-          </Button>
+          {isSignedIn ? (
+            <>
+              <Button href="/dashboard" size="lg" className="cursor-pointer flex items-center gap-2">
+                Open dashboard <ArrowRight size={18} />
+              </Button>
+              <Button href="/sentinel" size="lg" variant="outline" className="cursor-pointer">
+                Launch Sentinel Chat
+              </Button>
+            </>
+          ) : (
+            <>
+              <Button href="/sign-up" size="lg" className="cursor-pointer flex items-center gap-2">
+                Get started free <ArrowRight size={18} />
+              </Button>
+              <Button href="/sign-in" size="lg" variant="outline" className="cursor-pointer">
+                Sign in
+              </Button>
+            </>
+          )}
         </motion.div>
 
         {/* Trust indicators */}
@@ -68,7 +95,7 @@ export function Hero() {
         >
           <div className="flex items-center gap-2">
             <Shield size={16} className="text-green-400" />
-            <span>Bank-grade Security</span>
+            <span>Non-custodial</span>
           </div>
           <div className="flex items-center gap-2">
             <Zap size={16} className="text-yellow-400" />
@@ -76,11 +103,9 @@ export function Hero() {
           </div>
           <div className="flex items-center gap-2">
             <Sparkles size={16} className="text-purple-400" />
-            <span>AI-Powered</span>
+            <span>Jupiter-routed swaps</span>
           </div>
         </motion.div>
-
-
       </div>
     </section>
   )

@@ -3,18 +3,20 @@
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Menu, X } from 'lucide-react'
+import { useUser } from '@clerk/nextjs'
 import { Button } from '@/components/ui/Btn'
 
 const navLinks = [
+  { href: '#sentinel-chat', label: 'Sentinel Chat' },
   { href: '#problem', label: 'Problem' },
   { href: '#solution', label: 'Solution' },
   { href: '#features', label: 'Features' },
-  { href: '#waitlist', label: 'Waitlist' },
 ]
 
 export function Navbar() {
   const [scrolled, setScrolled] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
+  const { isSignedIn } = useUser()
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 50)
@@ -35,7 +37,7 @@ export function Navbar() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16 lg:h-20">
             {/* Logo */}
-            <motion.a 
+            <motion.a
               href="#"
               className="flex items-center gap-2"
               whileHover={{ scale: 1.05 }}
@@ -61,16 +63,31 @@ export function Navbar() {
             </div>
 
             {/* CTA */}
-            <div className="hidden md:block">
-              <Button href="#waitlist" size="sm">
-                Join Waitlist
-              </Button>
+            <div className="hidden md:flex items-center gap-3">
+              {isSignedIn ? (
+                <Button href="/dashboard" size="sm">
+                  Open dashboard
+                </Button>
+              ) : (
+                <>
+                  <a
+                    href="/sign-in"
+                    className="text-sm text-white/80 hover:text-white transition-colors"
+                  >
+                    Sign in
+                  </a>
+                  <Button href="/sign-up" size="sm">
+                    Get started
+                  </Button>
+                </>
+              )}
             </div>
 
             {/* Mobile Menu Button */}
             <button
               className="md:hidden text-white p-2"
               onClick={() => setMobileOpen(!mobileOpen)}
+              aria-label="Toggle menu"
             >
               {mobileOpen ? <X size={24} /> : <Menu size={24} />}
             </button>
@@ -88,7 +105,7 @@ export function Navbar() {
             exit={{ opacity: 0, x: '100%' }}
             transition={{ type: 'spring', damping: 25 }}
           >
-            <div className="flex flex-col items-center justify-center h-full gap-8">
+            <div className="flex flex-col items-center justify-center h-full gap-6 px-6">
               {navLinks.map((link, i) => (
                 <motion.a
                   key={link.href}
@@ -102,9 +119,36 @@ export function Navbar() {
                   {link.label}
                 </motion.a>
               ))}
-              <Button href="#waitlist" size="lg" onClick={() => setMobileOpen(false)}>
-                Join Waitlist
-              </Button>
+              <div className="flex flex-col items-center gap-3 mt-4 w-full max-w-xs">
+                {isSignedIn ? (
+                  <Button
+                    href="/dashboard"
+                    size="lg"
+                    className="w-full justify-center"
+                    onClick={() => setMobileOpen(false)}
+                  >
+                    Open dashboard
+                  </Button>
+                ) : (
+                  <>
+                    <Button
+                      href="/sign-up"
+                      size="lg"
+                      className="w-full justify-center"
+                      onClick={() => setMobileOpen(false)}
+                    >
+                      Get started
+                    </Button>
+                    <a
+                      href="/sign-in"
+                      className="text-base text-white/80 hover:text-white transition-colors"
+                      onClick={() => setMobileOpen(false)}
+                    >
+                      Sign in
+                    </a>
+                  </>
+                )}
+              </div>
             </div>
           </motion.div>
         )}

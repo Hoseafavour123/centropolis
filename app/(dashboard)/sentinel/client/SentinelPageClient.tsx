@@ -1,26 +1,27 @@
 // /app/sentinel/client/SentinelPageClient.tsx
 'use client';
 
-import { useRouter } from 'next/navigation';
+import { useState } from 'react';
 import { SentinelQueryBar } from '@/components/Sentinel/SentinelQueryBar';
 import { SentinelPanel } from '@/components/Sentinel/SentinelPanel';
 import { ActionsPanel } from '@/components/Sentinel/ActionsPanel';
 import { SentinelChatPanel } from '@/components/SentinelChat/SentinelChatPanel';
 import { useSentinelAnalyze } from '@/hooks/useSentinelAnalyze';
-import { SentinelAnalyzeRequest, SentinelResult } from '@/types/sentinel';
+import { SentinelAnalyzeRequest } from '@/types/sentinel';
 import { useGlobalStore } from '@/lib/store/globalStore';
 import { toast } from 'sonner';
 import { useSentinelStore } from '@/store/useSentinelStore';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Activity, Bot } from 'lucide-react';
-
 import { useTradeTokenStore } from '@/store/useTradeTokenStore';
+import { cn } from '@/lib/utils';
+
+type ActiveView = 'analyze' | 'chat';
 
 export function SentinelPageClient() {
-  const router = useRouter();
+  const [activeView, setActiveView] = useState<ActiveView>('analyze');
   const { selectedChain } = useGlobalStore();
   const { startAnalysis, subscribeToStream, streamingText, status } = useSentinelAnalyze();
-  const { currentAnalysis, analysisId, setCurrentAnalysis, setAnalysisId } = useSentinelStore();
+  const { currentAnalysis, setCurrentAnalysis, setAnalysisId } = useSentinelStore();
 
   const handleAnalyze = async (req: SentinelAnalyzeRequest) => {
     try {
@@ -28,65 +29,87 @@ export function SentinelPageClient() {
       setAnalysisId(id);
       setCurrentAnalysis(null);
 
-      // Start streaming
-      const cleanup = subscribeToStream(id, (result) => {
+      subscribeToStream(id, (result) => {
         setCurrentAnalysis(result);
         if (result.tokenAddress) {
           useTradeTokenStore.getState().setSelectedToken({
             symbol: result.tokenSymbol || 'TKN',
             name: result.tokenName || 'Analyzed Token',
-            mint: result.tokenAddress
+            mint: result.tokenAddress,
           });
         }
       });
-
-      // Cleanup on unmount handled by hook
-    } catch (error) {
-      toast.error("Could not start analysis. Please try again.");
+    } catch {
+      toast.error('Could not start analysis. Please try again.');
     }
   };
 
   const handleOpenTrade = () => {
     if (!currentAnalysis) return;
-
     if (currentAnalysis.tokenAddress) {
       useTradeTokenStore.getState().setSelectedToken({
         symbol: currentAnalysis.tokenSymbol || 'TKN',
         name: currentAnalysis.tokenName || 'Analyzed Token',
-        mint: currentAnalysis.tokenAddress
+        mint: currentAnalysis.tokenAddress,
       });
-      toast.success("Token preloaded in Quick Trade panel!");
+      toast.success('Token preloaded in Quick Trade panel!');
     } else {
-      toast.error("No token address available to trade.");
+      toast.error('No token address available to trade.');
     }
   };
 
   return (
-    <Tabs defaultValue="analyze" className="w-full">
-      <TabsList className="mb-4">
-        <TabsTrigger value="analyze">
-          <Activity className="w-3.5 h-3.5" />
+    <div className="w-full space-y-6">
+      {/* Toggle Buttons */}
+      <div className="flex items-center gap-2 p-1 bg-white/5 border border-white/10 rounded-2xl w-fit">
+        <button
+          onClick={() => setActiveView('analyze')}
+          className={cn(
+            'flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200',
+            activeView === 'analyze'
+              ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/30'
+              : 'text-muted-foreground hover:text-foreground hover:bg-white/5'
+          )}
+        >
+          <Activity className="w-4 h-4" />
           Analyze
-        </TabsTrigger>
-        <TabsTrigger value="chat">
-          <Bot className="w-3.5 h-3.5" />
+        </button>
+        <button
+          onClick={() => setActiveView('chat')}
+          className={cn(
+            'flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200',
+            activeView === 'chat'
+              ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/30'
+              : 'text-muted-foreground hover:text-foreground hover:bg-white/5'
+          )}
+        >
+          <Bot className="w-4 h-4" />
           Chat
-        </TabsTrigger>
-      </TabsList>
+        </button>
+      </div>
 
-      <TabsContent value="analyze">
-        <div className="grid grid-cols-1 xl:grid-cols-12 gap-6">
-          {/* Left Column - Query */}
-          <div className="xl:col-span-3 space-y-6">
+      {/* Analyze View */}
+      {activeView === 'analyze' && (
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          {/* Left Column – Query Bar */}
+          <div className="lg:col-span-4 xl:col-span-3 space-y-6">
             <SentinelQueryBar
               defaultChain={selectedChain}
               onAnalyze={handleAnalyze}
               isLoading={status === 'streaming'}
             />
+            {/* Actions panel below query bar on all breakpoints */}
+            {currentAnalysis && (
+              <ActionsPanel
+                analysis={currentAnalysis}
+                onOpenTrade={handleOpenTrade}
+                onSave={(id) => console.log('Save', id)}
+              />
+            )}
           </div>
 
-          {/* Main Column - Analysis */}
-          <div className="xl:col-span-6">
+          {/* Right Column – Analysis Results (wider) */}
+          <div className="lg:col-span-8 xl:col-span-9">
             <SentinelPanel
               analysis={currentAnalysis}
               streamingText={streamingText}
@@ -96,25 +119,15 @@ export function SentinelPageClient() {
               onExplain={() => console.log('Explain')}
             />
           </div>
-
-          {/* Right Column - Actions */}
-          <div className="xl:col-span-3">
-            <div className="sticky top-24">
-              {currentAnalysis && (
-                <ActionsPanel
-                  analysis={currentAnalysis}
-                  onOpenTrade={handleOpenTrade}
-                  onSave={(id) => console.log('Save', id)}
-                />
-              )}
-            </div>
-          </div>
         </div>
-      </TabsContent>
+      )}
 
-      <TabsContent value="chat">
-        <SentinelChatPanel />
-      </TabsContent>
-    </Tabs>
+      {/* Chat View – full width */}
+      {activeView === 'chat' && (
+        <div className="w-full">
+          <SentinelChatPanel />
+        </div>
+      )}
+    </div>
   );
-}
+}

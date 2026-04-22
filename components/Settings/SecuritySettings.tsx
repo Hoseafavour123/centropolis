@@ -83,7 +83,7 @@ export function SecuritySettings() {
                     <p className="text-xs text-muted-foreground leading-relaxed">
                         Register your mobile device to receive push notifications for trade confirmations and high-risk alerts.
                     </p>
-                    <Button variant="link" className="text-primary text-xs p-0 h-auto mt-2 h-4">Link device soon →</Button>
+                    <Button variant="link" className="text-primary text-xs p-0 h-auto mt-2">Link device soon →</Button>
                 </div>
             </div>
         </div>

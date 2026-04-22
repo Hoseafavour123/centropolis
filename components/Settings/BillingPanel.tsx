@@ -9,6 +9,27 @@ import { cn } from '@/lib/utils';
 export function BillingPanel() {
     const { user } = useUser();
     const [plan, setPlan] = React.useState('FREE');
+    const [usage, setUsage] = React.useState<{ apiCalls: number; apiLimit: number } | null>(null);
+
+    React.useEffect(() => {
+        if (!user) return;
+        let cancelled = false;
+        (async () => {
+            try {
+                const res = await fetch(`/api/user/${user.id}/plan`);
+                if (!res.ok) return;
+                const data = await res.json();
+                if (cancelled) return;
+                if (data.plan) setPlan(data.plan);
+                if (data.usage) setUsage({ apiCalls: data.usage.apiCalls, apiLimit: data.usage.apiLimit });
+            } catch {
+                // keep defaults
+            }
+        })();
+        return () => {
+            cancelled = true;
+        };
+    }, [user]);
 
     const plans = [
         {
@@ -115,10 +136,17 @@ export function BillingPanel() {
                     <div className="space-y-2">
                         <div className="flex justify-between text-xs font-medium uppercase tracking-wider text-muted-foreground">
                             <span>Calls this period</span>
-                            <span>1,250 / 5,000</span>
+                            <span>
+                                {(usage?.apiCalls ?? 0).toLocaleString()} / {(usage?.apiLimit ?? 5000).toLocaleString()}
+                            </span>
                         </div>
                         <div className="h-3 bg-muted/20 rounded-full overflow-hidden border border-border/20">
-                            <div className="h-full bg-gradient-to-r from-primary to-secondary w-[25%] relative shadow-[0_0_15px_rgba(var(--primary-rgb),0.5)]" />
+                            <div
+                                className="h-full bg-gradient-to-r from-primary to-secondary relative shadow-[0_0_15px_rgba(var(--primary-rgb),0.5)]"
+                                style={{
+                                    width: `${Math.min(100, Math.round(((usage?.apiCalls ?? 0) / (usage?.apiLimit ?? 5000)) * 100))}%`,
+                                }}
+                            />
                         </div>
                     </div>
                 </div>

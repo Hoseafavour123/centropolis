@@ -1,7 +1,7 @@
 "use client";
 
 import { useGlobalStore } from "@/lib/store/globalStore";
-import { Search, Bell, Menu, BellRing, CheckCircle2, XCircle, X } from "lucide-react";
+import { Search, Bell, Menu, BellRing, CheckCircle2, XCircle, X, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { UserButton } from "@clerk/nextjs";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
@@ -248,6 +248,17 @@ export function Navbar() {
               </div>
             )}
           </div>
+
+          {user?.role === "ADMIN" && (
+            <Link
+              href="/admin"
+              className="hidden md:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/30 text-primary text-xs font-semibold hover:bg-primary/15 transition-colors"
+              title="Admin Center"
+            >
+              <ShieldCheck className="w-3.5 h-3.5" />
+              Admin
+            </Link>
+          )}
 
           <WalletConnectButton />
 

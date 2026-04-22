@@ -23,8 +23,6 @@ export async function GET(req: Request) {
             take: 20,
         });
 
-        console.log('Notifications:', notifications);
-
         return NextResponse.json({ notifications });
     } catch (error) {
         console.error('Fetch notifications error:', error);
@@ -51,11 +49,13 @@ export async function DELETE(req: Request) {
         const id = searchParams.get('id');
 
         if (id) {
-            await prisma.notification.delete({
+            const result = await prisma.notification.deleteMany({
                 where: { id, userId: user.id },
             });
+            if (result.count === 0) {
+                return NextResponse.json({ error: 'Notification not found' }, { status: 404 });
+            }
         } else {
-            // Delete all if no ID provided
             await prisma.notification.deleteMany({
                 where: { userId: user.id },
             });
@@ -86,12 +86,11 @@ export async function PATCH(req: Request) {
         const { id } = await req.json();
 
         if (id) {
-            await prisma.notification.update({
+            await prisma.notification.updateMany({
                 where: { id, userId: user.id },
                 data: { read: true },
             });
         } else {
-            // Mark all as read
             await prisma.notification.updateMany({
                 where: { userId: user.id, read: false },
                 data: { read: true },
