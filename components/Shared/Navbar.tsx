@@ -324,7 +324,7 @@ export function Navbar() {
           </Button>
           <Link href="/dashboard" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
             <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center text-primary-foreground font-bold text-xl">
-              <img src="/public/Binocs.jpg" alt="Logo" className="w-8 h-8 rounded-lg" />
+              <img src="/Binocs.jpg" alt="Logo" className="w-8 h-8 rounded-lg" />
             </div>
             <span className="text-xl font-bold tracking-tight hidden md:inline-block">
               Binocs
