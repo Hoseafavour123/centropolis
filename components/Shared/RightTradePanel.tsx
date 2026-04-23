@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
+import { TokenAvatar } from '@/components/Shared/TokenAvatar';
 import {
   ArrowDown, Loader2, Settings, Info, ShieldCheck,
   AlertTriangle, ShieldAlert, RefreshCw, Clock, Zap,
@@ -25,11 +26,25 @@ const USDC_MINT = "EPjFW36DP7mVQC7i57K6BgnUpWMT8Dz6enwbp9z96Utm";
 // Quote expires after 30 seconds (Jupiter quotes are short-lived)
 const QUOTE_TTL_SECONDS = 30;
 
+// Well-known token logos for SOL, USDC, USDT, etc.
+const WELL_KNOWN_LOGOS: Record<string, string> = {
+  SOL:  "https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/So11111111111111111111111111111111111111112/logo.png",
+  USDC: "https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/EPjFW36DP7mVQC7i57K6BgnUpWMT8Dz6enwbp9z96Utm/logo.png",
+  USDT: "https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB/logo.svg",
+  [SOL_MINT]:  "https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/So11111111111111111111111111111111111111112/logo.png",
+  [USDC_MINT]: "https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/EPjFW36DP7mVQC7i57K6BgnUpWMT8Dz6enwbp9z96Utm/logo.png",
+};
+
+function resolveLogoUrl(tokenOrSymbol: string): string | undefined {
+  return WELL_KNOWN_LOGOS[tokenOrSymbol] ?? undefined;
+}
+
 interface RightTradePanelProps {
   chain: string;
   fromToken?: string;
   toToken?: string;
   toAddress?: string;
+  toLogoUrl?: string;
   amountUsd?: string;
 }
 
@@ -38,6 +53,7 @@ export function RightTradePanel({
   fromToken = 'SOL',
   toToken = 'BONK',
   toAddress,
+  toLogoUrl: toLogoUrlProp,
   amountUsd = '0.0'
 }: RightTradePanelProps) {
   // Helper to format long addresses into 4-letter symbols
@@ -48,24 +64,35 @@ export function RightTradePanel({
 
   const [toSymbol, setToSymbol] = useState(formatSymbol(toToken));
   const [fromSymbol, setFromSymbol] = useState(formatSymbol(fromToken));
+  const [toLogoUrl, setToLogoUrl] = useState<string | undefined>(
+    toLogoUrlProp ?? resolveLogoUrl(toToken)
+  );
+  const [fromLogoUrl, setFromLogoUrl] = useState<string | undefined>(resolveLogoUrl(fromToken));
 
   const [amount, setAmount] = useState("0.0");
   const [showDetails, setShowDetails] = useState(true);
 
-  // Sync with global token store dynamically
+  // Sync with global token store dynamically (set from trending grid, sentinel
+  // analysis "Open Quick Trade", token detail page, etc.). The store is the
+  // authoritative source — pages that render this panel are expected to seed
+  // the store with whatever token they're showing.
   const { selectedToken } = useTradeTokenStore();
 
   useEffect(() => {
-    if (selectedToken) {
-      if (selectedToken.mint) setTo(selectedToken.mint);
-      setToSymbol(formatSymbol(selectedToken.symbol));
-      // Auto-set 'from' to USDC if moving out of SOL for a highly specific token play
-      if (selectedToken.mint && from === 'SOL') {
-        setFrom('USDC');
-        setFromSymbol('USDC');
-      }
-    }
+    if (!selectedToken) return;
+    if (selectedToken.mint) setTo(selectedToken.mint);
+    setToSymbol(formatSymbol(selectedToken.symbol));
+    setToLogoUrl(selectedToken.logoUrl ?? resolveLogoUrl(selectedToken.symbol));
   }, [selectedToken]);
+
+  // Initial-only sync from parent props. Runs once per mount so that pages
+  // (e.g. token detail) which haven't yet populated the store still get the
+  // correct preview before the store-sync effect catches up.
+  useEffect(() => {
+    setTo(toAddress || toToken);
+    setToSymbol(formatSymbol(toToken));
+    setToLogoUrl(toLogoUrlProp ?? resolveLogoUrl(toToken));
+  }, [toAddress, toToken, toLogoUrlProp]);
 
   // Quote expiry countdown
   const [quoteAge, setQuoteAge] = useState(0);
@@ -216,9 +243,11 @@ export function RightTradePanel({
               isOverBalance ? "border-red-500/50" : "border-border"
             )}>
               <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-full bg-blue-500/20 flex items-center justify-center text-blue-400 font-bold text-sm">
-                  {fromSymbol[0]}
-                </div>
+                <TokenAvatar
+                  logoUrl={fromLogoUrl}
+                  symbol={fromSymbol}
+                  size="sm"
+                />
                 <span className="font-semibold">{fromSymbol}</span>
               </div>
               <Input
@@ -253,6 +282,8 @@ export function RightTradePanel({
                 setTo(from);
                 setFromSymbol(toSymbol);
                 setToSymbol(fromSymbol);
+                setFromLogoUrl(toLogoUrl);
+                setToLogoUrl(fromLogoUrl);
               }}
               className="p-2 rounded-full bg-card border border-border shadow-lg hover:bg-muted hover:rotate-180 transition-all duration-300"
             >
@@ -265,9 +296,11 @@ export function RightTradePanel({
             <Label className="text-xs text-muted-foreground">To (estimated)</Label>
             <div className="flex items-center justify-between p-3 rounded-xl bg-muted/50 border border-border">
               <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-full bg-purple-500/20 flex items-center justify-center text-purple-400 font-bold text-sm">
-                  {toSymbol[0]}
-                </div>
+                <TokenAvatar
+                  logoUrl={toLogoUrl}
+                  symbol={toSymbol}
+                  size="sm"
+                />
                 <span className="font-semibold">{toSymbol}</span>
               </div>
               {isLoading ? (

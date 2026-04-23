@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
 import { randomBytes } from 'crypto';
 import { prisma } from '@/lib/prisma';
+import { enforceLimit } from '@/lib/billing/limits';
 
 function generateKey(): string {
     return `binocs_live_${randomBytes(24).toString('hex')}`;
@@ -69,6 +70,12 @@ export async function POST(
         const user = await prisma.user.findUnique({ where: { clerkId: id } });
         if (!user) {
             return NextResponse.json({ error: 'User not found' }, { status: 404 });
+        }
+
+        try {
+            await enforceLimit(clerkId, 'apiKeys');
+        } catch (limitErr: any) {
+            return NextResponse.json({ error: limitErr.message }, { status: 403 });
         }
 
         const key = generateKey();

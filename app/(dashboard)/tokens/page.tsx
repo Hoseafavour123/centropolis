@@ -4,19 +4,9 @@ import { useQuery } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, TrendingUp, RefreshCw, ExternalLink } from "lucide-react";
 import { Token } from "@/lib/types";
+import { TokenAvatar } from "@/components/Shared/TokenAvatar";
 
 // ─── Helpers ───────────────────────────────────────────────────────────────────
-
-function symbolColor(symbol: string): string {
-    const colors = [
-        "#6366f1", "#8b5cf6", "#ec4899", "#f59e0b",
-        "#10b981", "#3b82f6", "#ef4444", "#14b8a6",
-        "#a855f7", "#f97316", "#06b6d4", "#84cc16",
-    ];
-    let hash = 0;
-    for (let i = 0; i < symbol.length; i++) hash = symbol.charCodeAt(i) + ((hash << 5) - hash);
-    return colors[Math.abs(hash) % colors.length];
-}
 
 function formatCompact(n: number): string {
     if (n >= 1_000_000_000) return `$${(n / 1_000_000_000).toFixed(2)}B`;
@@ -55,9 +45,6 @@ function RowSkeleton() {
 
 function TokenRow({ token, rank }: { token: Token; rank: number }) {
     const isPositive = token.change24h >= 0;
-    const bg = symbolColor(token.symbol);
-    const initials = token.symbol.slice(0, 3).toUpperCase();
-
     const dexUrl = `https://dexscreener.com/solana/${token.id}`;
 
     return (
@@ -68,12 +55,7 @@ function TokenRow({ token, rank }: { token: Token; rank: number }) {
             </span>
 
             {/* Avatar */}
-            <div
-                className="w-9 h-9 rounded-full flex items-center justify-center text-[10px] font-bold text-white shrink-0"
-                style={{ background: bg }}
-            >
-                {initials}
-            </div>
+            <TokenAvatar logoUrl={token.logoUrl} symbol={token.symbol} size="sm" />
 
             {/* Name + Symbol */}
             <div className="flex-1 min-w-0">
@@ -135,6 +117,7 @@ function TokenRow({ token, rank }: { token: Token; rank: number }) {
         </div>
     );
 }
+
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 

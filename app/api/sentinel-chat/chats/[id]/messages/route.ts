@@ -8,6 +8,7 @@ import {
   runTool,
   type ToolContext,
 } from "@/services/ai/sentinelChat";
+import { enforceLimit } from "@/lib/billing/limits";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 300;
@@ -123,6 +124,12 @@ export async function POST(
       orderBy: { createdAt: "desc" },
     });
     resolvedWallet = w?.address;
+  }
+
+  try {
+    await enforceLimit(clerkId, 'chats');
+  } catch (limitErr: any) {
+    return NextResponse.json({ error: limitErr.message }, { status: 403 });
   }
 
   // Persist user message immediately

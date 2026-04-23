@@ -4,6 +4,7 @@ import { TokenMeta } from '@/types/token';
 import { SafetyScoreBadge } from '../Sentinel/SafetyScoreBadge';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { TokenAvatar } from '@/components/Shared/TokenAvatar';
 import { 
   Star, 
   ExternalLink, 
@@ -46,9 +47,7 @@ export function TokenHeader({
       <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
         <div className="flex items-start gap-4">
           {/* Logo */}
-          <div className="w-16 h-16 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center text-2xl font-bold text-white">
-            {meta.symbol[0]}
-          </div>
+          <TokenAvatar logoUrl={meta.logoUrl} symbol={meta.symbol} size="xl" />
           
           <div className="space-y-1">
             <div className="flex items-center gap-3">

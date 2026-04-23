@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { prisma } from "@/lib/prisma";
+import { enforceLimit } from "@/lib/billing/limits";
 
 export async function GET(
   _req: NextRequest,
@@ -12,6 +13,12 @@ export async function GET(
 
   const user = await prisma.user.findUnique({ where: { clerkId } });
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  try {
+      await enforceLimit(clerkId, 'export');
+  } catch (limitErr: any) {
+      return NextResponse.json({ error: limitErr.message }, { status: 403 });
+  }
 
   const chat = await prisma.sentinelChat.findFirst({
     where: { id, userId: user.id, deletedAt: null },

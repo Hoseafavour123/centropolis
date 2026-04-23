@@ -18,15 +18,16 @@ import { Search, Clock, Zap } from 'lucide-react';
 
 interface SentinelQueryBarProps {
   defaultChain?: string;
+  defaultAddress?: string;
   onAnalyze: (req: SentinelAnalyzeRequest) => void;
   recentQueries?: SentinelAnalyzeRequest[];
   isLoading?: boolean;
 }
 
-export function SentinelQueryBar({ defaultChain = 'solana', onAnalyze, isLoading }: SentinelQueryBarProps) {
+export function SentinelQueryBar({ defaultChain = 'solana', defaultAddress = '', onAnalyze, isLoading }: SentinelQueryBarProps) {
   const [entityType, setEntityType] = useState<EntityType>('token');
   const [chain, setChain] = useState(defaultChain);
-  const [address, setAddress] = useState('');
+  const [address, setAddress] = useState(defaultAddress);
   const [timeframe, setTimeframe] = useState<Timeframe>('24h');
   const [depth, setDepth] = useState<AnalysisDepth>('normal');
 

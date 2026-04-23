@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { auth } from '@clerk/nextjs/server';
+import { enforceLimit } from '@/lib/billing/limits';
 
 // GET: Check if a token is watchlisted
 export async function GET(request: NextRequest) {
@@ -76,6 +77,12 @@ export async function POST(request: NextRequest) {
             await prisma.watchlist.delete({ where: uniqueWhere });
             return NextResponse.json({ isWatchlisted: false });
         } else {
+            try {
+                await enforceLimit(clerkId, 'watchlist');
+            } catch (limitErr: any) {
+                return NextResponse.json({ error: limitErr.message }, { status: 403 });
+            }
+            
             await prisma.watchlist.create({
                 data: {
                     userId: dbUser.id,

@@ -7,6 +7,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Token } from "@/lib/types";
 import { Info } from "lucide-react";
 import { useTradeTokenStore } from "@/store/useTradeTokenStore";
+import { TokenAvatar } from "@/components/Shared/TokenAvatar";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -88,8 +89,6 @@ function TokenCard({ token, isSelected, onClick }: {
   onClick: () => void;
 }) {
   const isPositive = token.change24h >= 0;
-  const bg = symbolColor(token.symbol);
-  const initials = token.symbol.slice(0, 3).toUpperCase();
 
   return (
     <Card
@@ -103,12 +102,9 @@ function TokenCard({ token, isSelected, onClick }: {
         {/* Header */}
         <div className="flex items-start justify-between">
           <div className="flex items-center gap-3">
-            {/* Avatar with initials */}
-            <div
-              className="w-10 h-10 rounded-full flex items-center justify-center text-[11px] font-bold text-white shrink-0 transition-transform group-hover:scale-110"
-              style={{ background: bg }}
-            >
-              {initials}
+            {/* Avatar with real image */}
+            <div className="transition-transform group-hover:scale-110">
+              <TokenAvatar logoUrl={token.logoUrl} symbol={token.symbol} size="md" />
             </div>
             <div className="min-w-0">
               <h4 className="font-bold truncate leading-tight">{token.name}</h4>
@@ -198,6 +194,14 @@ export function TrendingGrid() {
   });
 
   function handleTokenClick(token: Token) {
+    // Store selected token (including logoUrl) for the trade panel
+    setSelectedToken({
+      symbol: token.symbol,
+      name: token.name,
+      mint: token.address,
+      priceUsd: token.price,
+      logoUrl: token.logoUrl || undefined,
+    });
     const searchParams = new URLSearchParams({
       symbol: token.symbol,
       name: token.name,

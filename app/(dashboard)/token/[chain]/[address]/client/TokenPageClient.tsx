@@ -13,6 +13,7 @@ import { Navbar } from '@/components/Shared/Navbar';
 import { Sidebar } from '@/components/Shared/Sidebar';
 import { toast } from 'sonner';
 import { useRightPanelStore } from '@/store/useRightPanelStore';
+import { useTradeTokenStore } from '@/store/useTradeTokenStore';
 
 interface TokenPageClientProps {
   chain: string;
@@ -32,21 +33,30 @@ export function TokenPageClient({ chain, address, initialMeta }: TokenPageClient
   const displayMeta = meta || initialMeta;
   const setRightPanel = useRightPanelStore((state) => state.setComponent);
 
-  // Set Right Panel
+  // Set Right Panel + seed the trade token store so the panel renders the
+  // correct token even on first paint (search-flow navigations).
   useEffect(() => {
     if (displayMeta) {
+      useTradeTokenStore.getState().setSelectedToken({
+        symbol: displayMeta.symbol,
+        name: displayMeta.name,
+        mint: address,
+        logoUrl: displayMeta.logoUrl,
+        priceUsd: displayMeta.priceUsd,
+      });
       setRightPanel(
         <RightTradePanel
           chain={chain}
           fromToken="SOL"
           toToken={displayMeta.symbol}
           toAddress={address}
+          toLogoUrl={displayMeta.logoUrl}
           amountUsd="0.1"
         />
       );
     }
     return () => setRightPanel(null);
-  }, [displayMeta, chain, setRightPanel]);
+  }, [displayMeta, chain, address, setRightPanel]);
 
   // Fetch initial watchlist status
   useEffect(() => {

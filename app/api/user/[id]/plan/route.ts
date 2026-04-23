@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
-import { prisma } from '@/lib/prisma';
+import { getUserUsage } from '@/lib/billing/limits';
 
 export async function GET(
     request: Request,
@@ -15,31 +15,27 @@ export async function GET(
             return new NextResponse('Unauthorized', { status: 401 });
         }
 
-        const user = await prisma.user.findUnique({
-            where: { clerkId: id },
-            select: {
-                plan: true,
-            }
-        });
+        const data = await getUserUsage(clerkId);
 
-        if (!user) {
-            return new NextResponse('User not found', { status: 404 });
-        }
-
-        // Mock usage metrics tailored to plan
-        const isPro = user.plan === 'PRO' || user.plan === 'WHALE';
         return NextResponse.json({
-            plan: user.plan,
+            plan: data.plan,
+            planExpiresAt: data.planExpiresAt,
             usage: {
-                apiCalls: 1250,
-                apiLimit: isPro ? 10000 : 5000,
-                storageUsed: '1.2 GB',
-                storageLimit: isPro ? '10 GB' : '5 GB',
-            }
+                apiCalls: data.usage.analysesCount, // mapping analysis count for general dashboard stat
+                apiLimit: data.limits.maxAnalysesPerMonth,
+                analysesCount: data.usage.analysesCount,
+                watchlistCount: data.usage.watchlistCount,
+                apiKeysCount: data.usage.apiKeysCount,
+                chatsCount: data.usage.chatsCount,
+            },
+            limits: data.limits
         });
 
-    } catch (error) {
+    } catch (error: any) {
         console.error('[USER_PLAN_GET]', error);
+        if (error.message === 'User not found') {
+             return new NextResponse('User not found', { status: 404 });
+        }
         return new NextResponse('Internal Error', { status: 500 });
     }
 }

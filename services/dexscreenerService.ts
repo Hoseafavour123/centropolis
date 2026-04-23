@@ -25,6 +25,8 @@ export interface DexScreenerToken {
     change24h: number;
     volume24h: number;
     liquidity: number;
+    /** Token logo URL from DexScreener pair info */
+    logoUrl?: string;
 }
 
 interface DexScreenerPair {
@@ -116,6 +118,7 @@ export const dexscreenerService = {
                         change24h: pair.priceChange?.h24 ?? 0,
                         volume24h: pair.volume?.h24 ?? 0,
                         liquidity: pair.liquidity?.usd ?? 0,
+                        logoUrl: (pair as any).info?.imageUrl || undefined,
                     }));
                 }
             }
@@ -146,6 +149,7 @@ export const dexscreenerService = {
                 change24h: pair.priceChange?.h24 ?? 0,
                 volume24h: pair.volume?.h24 ?? 0,
                 liquidity: pair.liquidity?.usd ?? 0,
+                logoUrl: (pair as any).info?.imageUrl || undefined,
             }));
         } catch (error) {
             console.error("[dexscreenerService] getTrendingTokens error:", error);

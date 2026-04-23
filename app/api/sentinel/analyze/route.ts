@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { auth } from '@clerk/nextjs/server';
+import { enforceLimit } from '@/lib/billing/limits';
 
 export async function POST(request: NextRequest) {
   try {
@@ -11,6 +12,12 @@ export async function POST(request: NextRequest) {
       const dbUser = await prisma.user.findUnique({ where: { clerkId } });
       if (dbUser) {
         dbUserId = dbUser.id;
+        
+        try {
+            await enforceLimit(clerkId, 'analyses');
+        } catch (limitErr: any) {
+             return NextResponse.json({ error: limitErr.message }, { status: 403 });
+        }
       }
     }
 

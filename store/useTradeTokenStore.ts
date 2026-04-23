@@ -19,6 +19,8 @@ export interface TradeToken {
     mint?: string;
     /** Informal price in USD — used to estimate "to" amounts */
     priceUsd?: number;
+    /** Token logo URL from DexScreener / Jupiter / Helius */
+    logoUrl?: string;
 }
 
 /** The baseline pair that is always used when nothing is selected */

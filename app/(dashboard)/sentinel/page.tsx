@@ -1,5 +1,6 @@
 // /app/sentinel/page.tsx
 
+import { Suspense } from 'react';
 import { SentinelPageClient } from './client/SentinelPageClient';
 
 export const metadata = {
@@ -8,5 +9,13 @@ export const metadata = {
 };
 
 export default function SentinelPage() {
-  return <SentinelPageClient />;
+  return (
+    <Suspense fallback={
+      <div className="flex h-[60vh] items-center justify-center">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+      </div>
+    }>
+      <SentinelPageClient />
+    </Suspense>
+  );
 }

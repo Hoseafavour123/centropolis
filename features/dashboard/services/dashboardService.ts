@@ -36,7 +36,7 @@ export const dashboardService = {
             change24h: parseFloat(t.change24h.toFixed(2)),
             volume24h: t.volume24h,
             marketCap: 0,
-            logoUrl: "",
+            logoUrl: t.logoUrl || "",
             chain: "solana" as const,
             safetyScore: computeSafetyScore(t.volume24h, t.change24h, t.liquidity),
         }));

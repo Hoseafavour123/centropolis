@@ -21,6 +21,8 @@ model User {
   watchlists    Watchlist[]
   alerts           Alert[]
   plan             String   @default("FREE")
+  planStartedAt    DateTime?
+  planExpiresAt    DateTime?
   role             String   @default("USER")
   twoFactorEnabled Boolean  @default(false)
   apiKeys          ApiKey[]

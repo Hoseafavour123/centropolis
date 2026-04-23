@@ -1,7 +1,8 @@
 // /app/sentinel/client/SentinelPageClient.tsx
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { SentinelQueryBar } from '@/components/Sentinel/SentinelQueryBar';
 import { SentinelPanel } from '@/components/Sentinel/SentinelPanel';
 import { ActionsPanel } from '@/components/Sentinel/ActionsPanel';
@@ -22,6 +23,10 @@ export function SentinelPageClient() {
   const { selectedChain } = useGlobalStore();
   const { startAnalysis, subscribeToStream, streamingText, status } = useSentinelAnalyze();
   const { currentAnalysis, setCurrentAnalysis, setAnalysisId } = useSentinelStore();
+
+  // ── Read URL params for auto-trigger ─────────────────────────────────────
+  const searchParams = useSearchParams();
+  const autoTriggered = useRef(false);
 
   const handleAnalyze = async (req: SentinelAnalyzeRequest) => {
     try {
@@ -44,17 +49,83 @@ export function SentinelPageClient() {
     }
   };
 
+  // Auto-trigger when arriving from a token detail page
+  useEffect(() => {
+    if (autoTriggered.current) return;
+
+    const tokenAddress = searchParams.get('token');
+    const chain = searchParams.get('chain');
+
+    if (tokenAddress && chain) {
+      autoTriggered.current = true;
+      // Switch to analyze view in case user had chat open
+      setActiveView('analyze');
+
+      const req: SentinelAnalyzeRequest = {
+        entityType: 'token',
+        chain,
+        address: tokenAddress,
+        timeframe: '24h',
+        depth: 'normal',
+      };
+
+      // Small delay so the page renders first, then auto-fires
+      const timer = setTimeout(() => {
+        handleAnalyze(req);
+        toast.info(`Auto-analyzing ${tokenAddress.slice(0, 6)}…${tokenAddress.slice(-4)}`, {
+          description: 'Triggered from token detail page',
+          duration: 3000,
+        });
+      }, 400);
+      return () => clearTimeout(timer);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams]);
+
   const handleOpenTrade = () => {
     if (!currentAnalysis) return;
-    if (currentAnalysis.tokenAddress) {
-      useTradeTokenStore.getState().setSelectedToken({
-        symbol: currentAnalysis.tokenSymbol || 'TKN',
-        name: currentAnalysis.tokenName || 'Analyzed Token',
-        mint: currentAnalysis.tokenAddress,
-      });
-      toast.success('Token preloaded in Quick Trade panel!');
-    } else {
+    const { tokenAddress, tokenSymbol, tokenName } = currentAnalysis;
+    if (!tokenAddress) {
       toast.error('No token address available to trade.');
+      return;
+    }
+
+    const chain = (searchParams.get('chain') || selectedChain || 'solana').toLowerCase();
+
+    // Seed the trade panel immediately with what we know.
+    useTradeTokenStore.getState().setSelectedToken({
+      symbol: tokenSymbol || 'TKN',
+      name: tokenName || 'Analyzed Token',
+      mint: tokenAddress,
+    });
+    toast.success('Token preloaded in Quick Trade panel!');
+
+    // Enrich with logo + price from the meta endpoint in the background so
+    // the avatar fills in shortly after.
+    fetch(`/api/token/${chain}/${tokenAddress}/meta`)
+      .then((res) => (res.ok ? res.json() : null))
+      .then((meta) => {
+        if (!meta) return;
+        useTradeTokenStore.getState().setSelectedToken({
+          symbol: meta.symbol || tokenSymbol || 'TKN',
+          name: meta.name || tokenName || 'Analyzed Token',
+          mint: tokenAddress,
+          logoUrl: meta.logoUrl,
+          priceUsd: meta.priceUsd,
+        });
+      })
+      .catch(() => {
+        // non-fatal — panel still usable without logo
+      });
+
+    // On smaller viewports the right panel sits below the analyze view.
+    // Bring it into view so the user sees the preload happen.
+    if (typeof window !== 'undefined' && window.innerWidth < 1280) {
+      setTimeout(() => {
+        document
+          .querySelector('[data-right-panel]')
+          ?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 50);
     }
   };
 
@@ -94,7 +165,8 @@ export function SentinelPageClient() {
           {/* Left Column – Query Bar */}
           <div className="lg:col-span-4 xl:col-span-3 space-y-6">
             <SentinelQueryBar
-              defaultChain={selectedChain}
+              defaultChain={searchParams.get('chain') || selectedChain}
+              defaultAddress={searchParams.get('token') || undefined}
               onAnalyze={handleAnalyze}
               isLoading={status === 'streaming'}
             />
@@ -130,4 +202,4 @@ export function SentinelPageClient() {
       )}
     </div>
   );
-}
+}

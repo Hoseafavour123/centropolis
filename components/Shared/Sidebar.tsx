@@ -18,10 +18,10 @@ import { cn } from "@/lib/utils";
 
 const navItems = [
   { icon: LayoutDashboard, label: "Dashboard", href: "/dashboard" },
+  { icon: ShieldAlert, label: "Sentinel", href: "/sentinel" },
   { icon: Wallet, label: "Wallet", href: "/wallet" },
   { icon: Star, label: "Watchlist Tracker", href: "/watchlist" },
   { icon: Activity, label: "Orders and History", href: "/orders" },
-  { icon: ShieldAlert, label: "Sentinel", href: "/sentinel" },
   { icon: Users, label: "Social", href: "/social" },
 ];
 

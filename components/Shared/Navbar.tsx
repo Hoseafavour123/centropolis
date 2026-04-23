@@ -1,7 +1,7 @@
 "use client";
 
 import { useGlobalStore } from "@/lib/store/globalStore";
-import { Search, Bell, Menu, BellRing, CheckCircle2, XCircle, X, ShieldCheck } from "lucide-react";
+import { Search, Bell, Menu, BellRing, CheckCircle2, XCircle, X, ShieldCheck, Wallet, TrendingUp, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { UserButton } from "@clerk/nextjs";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
@@ -10,19 +10,193 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 import { useWalletStore } from "@/store/useWalletStore";
 import { WalletConnectButton } from "@/components/wallet/WalletConnectButton";
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { cn } from "@/lib/utils";
+import { useRouter } from "next/navigation";
+import { TokenAvatar } from "@/components/Shared/TokenAvatar";
+import type { SearchResult } from "@/app/api/search/route";
+
+// ── Debounce hook ─────────────────────────────────────────────────────────────
+
+function useDebounce<T>(value: T, delay: number): T {
+  const [debounced, setDebounced] = useState(value);
+  useEffect(() => {
+    const timer = setTimeout(() => setDebounced(value), delay);
+    return () => clearTimeout(timer);
+  }, [value, delay]);
+  return debounced;
+}
+
+// ── Price helpers ─────────────────────────────────────────────────────────────
+
+function formatPrice(price?: number): string {
+  if (!price) return "";
+  if (price < 0.000001) return `$${price.toExponential(2)}`;
+  if (price < 0.01) return `$${price.toFixed(6)}`;
+  if (price < 1) return `$${price.toFixed(4)}`;
+  return `$${price.toFixed(2)}`;
+}
+
+// ── Search Dropdown ───────────────────────────────────────────────────────────
+
+function SearchDropdown({
+  query,
+  results,
+  isLoading,
+  onSelect,
+  onClose,
+}: {
+  query: string;
+  results: SearchResult[];
+  isLoading: boolean;
+  onSelect: (r: SearchResult) => void;
+  onClose: () => void;
+}) {
+  const [activeIdx, setActiveIdx] = useState(-1);
+
+  // Reset highlight when results change
+  useEffect(() => setActiveIdx(-1), [results]);
+
+  // Keyboard navigation
+  useEffect(() => {
+    function handleKey(e: KeyboardEvent) {
+      if (e.key === "ArrowDown") {
+        e.preventDefault();
+        setActiveIdx((i) => Math.min(i + 1, results.length - 1));
+      } else if (e.key === "ArrowUp") {
+        e.preventDefault();
+        setActiveIdx((i) => Math.max(i - 1, -1));
+      } else if (e.key === "Enter" && activeIdx >= 0) {
+        e.preventDefault();
+        onSelect(results[activeIdx]);
+      } else if (e.key === "Escape") {
+        onClose();
+      }
+    }
+    document.addEventListener("keydown", handleKey);
+    return () => document.removeEventListener("keydown", handleKey);
+  }, [results, activeIdx, onSelect, onClose]);
+
+  return (
+    <div className="absolute top-full mt-2 left-0 right-0 z-[100] rounded-xl border border-border bg-background/95 backdrop-blur-md shadow-2xl overflow-hidden">
+      {/* Loading skeletons */}
+      {isLoading && (
+        <div className="px-3 py-2 space-y-1">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="flex items-center gap-3 px-2 py-2.5 animate-pulse">
+              <div className="w-8 h-8 rounded-full bg-muted shrink-0" />
+              <div className="flex-1 space-y-1.5">
+                <div className="h-3 bg-muted rounded w-28" />
+                <div className="h-2 bg-muted rounded w-16" />
+              </div>
+              <div className="h-3 bg-muted rounded w-14" />
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Results */}
+      {!isLoading && results.length > 0 && (
+        <div className="py-1">
+          <div className="px-3 py-1.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/70">
+            {results[0].type === "wallet" ? "Wallet" : "Tokens"}
+          </div>
+          {results.map((r, i) => (
+            <button
+              key={r.address}
+              onClick={() => onSelect(r)}
+              className={cn(
+                "w-full flex items-center gap-3 px-3 py-2.5 transition-colors text-left group",
+                activeIdx === i ? "bg-primary/10" : "hover:bg-muted/60"
+              )}
+            >
+              {/* Icon / Avatar */}
+              {r.type === "wallet" ? (
+                <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center shrink-0">
+                  <Wallet className="w-4 h-4 text-muted-foreground" />
+                </div>
+              ) : (
+                <TokenAvatar logoUrl={r.logoUrl} symbol={r.symbol || r.address.slice(0, 3)} size="sm" />
+              )}
+
+              {/* Text */}
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-1.5">
+                  <span className="font-semibold text-sm truncate">
+                    {r.type === "wallet" ? "Wallet" : r.name}
+                  </span>
+                  {r.type === "token" && r.symbol && (
+                    <span className="text-[10px] text-muted-foreground font-mono shrink-0">
+                      {r.symbol}
+                    </span>
+                  )}
+                  {/* Chain pill */}
+                  <span className="ml-auto text-[9px] px-1.5 py-0.5 rounded-full bg-muted text-muted-foreground font-mono capitalize shrink-0">
+                    {r.chain}
+                  </span>
+                </div>
+                {r.type === "wallet" ? (
+                  <p className="text-xs text-muted-foreground font-mono truncate">{r.address}</p>
+                ) : (
+                  <p className="text-xs text-muted-foreground font-mono truncate">
+                    {r.address.slice(0, 8)}…{r.address.slice(-4)}
+                  </p>
+                )}
+              </div>
+
+              {/* Price + change */}
+              {r.type === "token" && r.priceUsd && (
+                <div className="text-right shrink-0">
+                  <p className="text-xs font-mono font-medium">{formatPrice(r.priceUsd)}</p>
+                  {r.change24h !== undefined && (
+                    <p className={cn(
+                      "text-[10px] font-medium",
+                      r.change24h >= 0 ? "text-green-400" : "text-red-400"
+                    )}>
+                      {r.change24h >= 0 ? "+" : ""}{r.change24h.toFixed(2)}%
+                    </p>
+                  )}
+                </div>
+              )}
+            </button>
+          ))}
+        </div>
+      )}
+
+      {/* Empty state */}
+      {!isLoading && results.length === 0 && query.length >= 2 && (
+        <div className="flex flex-col items-center justify-center py-8 gap-2 text-center">
+          <TrendingUp className="w-7 h-7 text-muted-foreground/30" />
+          <p className="text-sm text-muted-foreground">No tokens found for &ldquo;{query}&rdquo;</p>
+          <p className="text-xs text-muted-foreground/60">Try a token name, symbol, or paste an address</p>
+        </div>
+      )}
+
+      {/* Footer hint */}
+      {!isLoading && results.length > 0 && (
+        <div className="border-t border-border/50 px-3 py-1.5 flex items-center gap-3 text-[10px] text-muted-foreground/60">
+          <span><kbd className="px-1 py-0.5 rounded bg-muted text-muted-foreground font-mono text-[9px]">↑↓</kbd> navigate</span>
+          <span><kbd className="px-1 py-0.5 rounded bg-muted text-muted-foreground font-mono text-[9px]">↵</kbd> select</span>
+          <span><kbd className="px-1 py-0.5 rounded bg-muted text-muted-foreground font-mono text-[9px]">Esc</kbd> close</span>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── Navbar ────────────────────────────────────────────────────────────────────
 
 export function Navbar() {
   const { toggleSidebar } = useGlobalStore();
   const { chain } = useWalletStore();
   const { user } = useCurrentUser();
   const queryClient = useQueryClient();
+  const router = useRouter();
 
+  // ── Notifications state ──────────────────────────────────────────────────
   const [open, setOpen] = useState(false);
   const panelRef = useRef<HTMLDivElement>(null);
 
-  // Close panel when clicking outside
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
       if (panelRef.current && !panelRef.current.contains(e.target as Node)) {
@@ -33,6 +207,63 @@ export function Navbar() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [open]);
 
+  // ── Search state ─────────────────────────────────────────────────────────
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchFocused, setSearchFocused] = useState(false);
+  const debouncedQuery = useDebounce(searchQuery, 300);
+  const searchRef = useRef<HTMLDivElement>(null);
+
+  // Close search dropdown on outside click
+  useEffect(() => {
+    function handleOutside(e: MouseEvent) {
+      if (searchRef.current && !searchRef.current.contains(e.target as Node)) {
+        setSearchFocused(false);
+      }
+    }
+    document.addEventListener("mousedown", handleOutside);
+    return () => document.removeEventListener("mousedown", handleOutside);
+  }, []);
+
+  // Ctrl+K / Cmd+K shortcut to focus search
+  useEffect(() => {
+    function handleShortcut(e: KeyboardEvent) {
+      if ((e.ctrlKey || e.metaKey) && e.key === "k") {
+        e.preventDefault();
+        const input = searchRef.current?.querySelector("input");
+        input?.focus();
+        setSearchFocused(true);
+      }
+    }
+    document.addEventListener("keydown", handleShortcut);
+    return () => document.removeEventListener("keydown", handleShortcut);
+  }, []);
+
+  // ── Search query ─────────────────────────────────────────────────────────
+  const { data: searchResults = [], isFetching: isSearching } = useQuery<SearchResult[]>({
+    queryKey: ["search", debouncedQuery],
+    queryFn: async () => {
+      if (!debouncedQuery || debouncedQuery.length < 2) return [];
+      const res = await fetch(`/api/search?q=${encodeURIComponent(debouncedQuery)}`);
+      if (!res.ok) return [];
+      return res.json();
+    },
+    enabled: debouncedQuery.length >= 2,
+    staleTime: 30_000,
+  });
+
+  const handleSearchSelect = useCallback((result: SearchResult) => {
+    setSearchFocused(false);
+    setSearchQuery("");
+    if (result.type === "wallet") {
+      router.push(`/wallet?address=${result.address}`);
+    } else {
+      router.push(`/token/${result.chain}/${result.address}`);
+    }
+  }, [router]);
+
+  const showDropdown = searchFocused && debouncedQuery.length >= 2;
+
+  // ── Notifications ─────────────────────────────────────────────────────────
   const { data: notificationsRes } = useQuery({
     queryKey: ["notifications-nav"],
     queryFn: async () => {
@@ -48,13 +279,11 @@ export function Navbar() {
   const unreadCount = notifications.filter((n) => !n.read).length;
   const hasUnread = unreadCount > 0;
 
-  // Mark one or all as read
   const markRead = useMutation({
     mutationFn: (id?: string) => axios.patch("/api/notifications", { id }),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["notifications-nav"] }),
   });
 
-  // Delete one or all
   const deleteNotif = useMutation({
     mutationFn: (id?: string) =>
       axios.delete(`/api/notifications${id ? `?id=${id}` : ""}`),
@@ -104,14 +333,44 @@ export function Navbar() {
         </div>
 
         {/* Search */}
-        <div className="flex-1 max-w-md mx-4 hidden md:block">
+        <div className="flex-1 max-w-md mx-4 hidden md:block" ref={searchRef}>
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            {isSearching ? (
+              <Loader2 className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground animate-spin" />
+            ) : (
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            )}
             <input
+              id="navbar-search"
               type="text"
-              placeholder="Search tokens, wallets..."
-              className="w-full h-10 pl-10 pr-4 rounded-full bg-muted border-none focus:ring-2 focus:ring-primary outline-none text-sm"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              onFocus={() => setSearchFocused(true)}
+              placeholder="Search tokens, addresses…"
+              className="w-full h-10 pl-10 pr-10 rounded-full bg-muted border border-transparent focus:border-primary/50 focus:ring-2 focus:ring-primary/20 outline-none text-sm transition-all"
+              autoComplete="off"
+              spellCheck={false}
             />
+            {searchQuery && (
+              <button
+                onClick={() => { setSearchQuery(""); setSearchFocused(false); }}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                aria-label="Clear search"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            )}
+
+            {/* Dropdown */}
+            {showDropdown && (
+              <SearchDropdown
+                query={debouncedQuery}
+                results={searchResults}
+                isLoading={isSearching && debouncedQuery.length >= 2}
+                onSelect={handleSearchSelect}
+                onClose={() => setSearchFocused(false)}
+              />
+            )}
           </div>
         </div>
 
@@ -127,7 +386,6 @@ export function Navbar() {
             <button
               onClick={() => {
                 setOpen((v) => !v);
-                // Auto mark all as read when opening
                 if (!open && hasUnread) markRead.mutate(undefined);
               }}
               className="relative p-2 text-muted-foreground hover:text-foreground transition-colors"

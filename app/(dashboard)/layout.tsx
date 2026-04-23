@@ -15,7 +15,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                             {children}
                         </div>
                         {/* Right Action Panel */}
-                        <div className="xl:col-span-3">
+                        <div className="xl:col-span-3" data-right-panel>
                             <div className="sticky top-24">
                                 <RightPanelWrapper />
                             </div>
