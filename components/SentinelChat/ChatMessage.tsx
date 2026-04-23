@@ -8,7 +8,10 @@ import type { ChatMessage as ChatMessageType } from "@/store/useSentinelChatStor
 
 interface Props {
   message: ChatMessageType;
-  toolResultsByCallId: Record<string, { content: string | null }>;
+  toolResultsByCallId: Record<
+    string,
+    { content: string | null; display?: ChatMessageType["display"] }
+  >;
 }
 
 export function ChatMessage({ message, toolResultsByCallId }: Props) {
@@ -42,14 +45,18 @@ export function ChatMessage({ message, toolResultsByCallId }: Props) {
         {message.content && <MarkdownMessage content={message.content} />}
         {message.toolCalls && message.toolCalls.length > 0 && (
           <div className="space-y-1.5">
-            {message.toolCalls.map((tc) => (
-              <PersistedToolBlock
-                key={tc.id}
-                name={tc.name}
-                args={tc.arguments}
-                resultContent={toolResultsByCallId[tc.id]?.content ?? null}
-              />
-            ))}
+            {message.toolCalls.map((tc) => {
+              const result = toolResultsByCallId[tc.id];
+              return (
+                <PersistedToolBlock
+                  key={tc.id}
+                  name={tc.name}
+                  args={tc.arguments}
+                  resultContent={result?.content ?? null}
+                  display={result?.display ?? null}
+                />
+              );
+            })}
           </div>
         )}
       </div>

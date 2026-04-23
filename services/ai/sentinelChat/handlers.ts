@@ -413,6 +413,7 @@ const getJupiterQuote: ToolHandler = async (args, ctx) => {
       priceImpactPct: parseFloat(quote.priceImpactPct) || 0,
       slippageBps,
       route: (quote.routePlan || []).map((s: any) => s.swapInfo?.label).filter(Boolean),
+      quotedAt: new Date().toISOString(),
     };
 
     return ok(payload, { display: { kind: "trade_quote_card", payload } });
@@ -504,6 +505,7 @@ const prepareSwap: ToolHandler = async (args, ctx) => {
         .filter(Boolean),
       // The UI must require an explicit user click; never auto-execute.
       requiresUserConfirmation: true,
+      quotedAt: new Date().toISOString(),
     };
 
     // Don't echo the full quoteResponse back to the LLM — too big and noisy.

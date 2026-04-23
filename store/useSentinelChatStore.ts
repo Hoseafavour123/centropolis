@@ -23,6 +23,8 @@ export interface ChatMessage {
   toolCalls?: StoredToolCall[] | null;
   toolCallId?: string | null;
   toolName?: string | null;
+  /** Tool-role messages may carry the rendered display payload from the server. */
+  display?: ToolDisplay | null;
   createdAt: string;
   pending?: boolean;
 }

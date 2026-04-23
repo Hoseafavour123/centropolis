@@ -2,6 +2,7 @@
 
 import { useCallback, useRef } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 import {
   useSentinelChatStore,
   type ChatMessage,
@@ -24,14 +25,31 @@ type ServerChatMessage = {
 };
 
 function normalizeMessage(m: ServerChatMessage): ChatMessage {
-  const tc = Array.isArray(m.toolCalls) ? (m.toolCalls as StoredToolCall[]) : null;
+  const role = (m.role as ChatMessage["role"]) ?? "assistant";
+  // Assistant role uses `toolCalls` as an array of {id, name, arguments}.
+  // Tool role re-uses the same Json column to carry an envelope { display }
+  // so the UI can re-render inline cards (trade quote, analysis, …) on reload.
+  let toolCalls: StoredToolCall[] | null = null;
+  let display: ToolDisplay | null = null;
+  if (role === "assistant" && Array.isArray(m.toolCalls)) {
+    toolCalls = m.toolCalls as StoredToolCall[];
+  } else if (
+    role === "tool" &&
+    m.toolCalls &&
+    typeof m.toolCalls === "object" &&
+    !Array.isArray(m.toolCalls)
+  ) {
+    const env = m.toolCalls as { display?: ToolDisplay | null };
+    display = env.display ?? null;
+  }
   return {
     id: m.id,
-    role: (m.role as ChatMessage["role"]) ?? "assistant",
+    role,
     content: m.content,
-    toolCalls: tc,
+    toolCalls,
     toolCallId: m.toolCallId,
     toolName: m.toolName,
+    display,
     createdAt: m.createdAt,
   };
 }
@@ -134,8 +152,35 @@ export function useSentinelChat() {
     [store]
   );
 
-  const exportChat = useCallback((chatId: string) => {
-    window.open(`${API_BASE}/chats/${chatId}/export`, "_blank");
+  const exportChat = useCallback(async (chatId: string) => {
+    try {
+      const res = await fetch(`${API_BASE}/chats/${chatId}/export`);
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        throw new Error(errData.error || `Failed to export chat: ${res.status}`);
+      }
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      
+      const contentDisposition = res.headers.get("Content-Disposition");
+      let filename = `sentinel-chat-export.json`;
+      if (contentDisposition) {
+        const filenameMatch = contentDisposition.match(/filename="?([^"]+)"?/);
+        if (filenameMatch && filenameMatch[1]) {
+          filename = filenameMatch[1];
+        }
+      }
+      
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch (err: any) {
+      toast.error(err.message || "Failed to export chat");
+    }
   }, []);
 
   const cancelStream = useCallback(() => {
@@ -182,7 +227,12 @@ export function useSentinelChat() {
           signal: controller.signal,
         });
         if (!res.ok || !res.body) {
-          throw new Error(`Stream failed: ${res.status}`);
+          let errMsg = `Stream failed: ${res.status}`;
+          try {
+            const errData = await res.json();
+            if (errData?.error) errMsg = errData.error;
+          } catch {}
+          throw new Error(errMsg);
         }
 
         const reader = res.body.getReader();

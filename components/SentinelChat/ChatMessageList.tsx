@@ -31,10 +31,13 @@ export function ChatMessageList({
   const scrollRef = useRef<HTMLDivElement>(null);
 
   const toolResultsByCallId = useMemo(() => {
-    const map: Record<string, { content: string | null }> = {};
+    const map: Record<
+      string,
+      { content: string | null; display?: ChatMessageType["display"] }
+    > = {};
     for (const m of messages) {
       if (m.role === "tool" && m.toolCallId) {
-        map[m.toolCallId] = { content: m.content };
+        map[m.toolCallId] = { content: m.content, display: m.display ?? null };
       }
     }
     return map;

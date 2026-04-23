@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ArrowRight, ShieldCheck, ShieldAlert, ShieldX, Loader2, AlertTriangle } from "lucide-react";
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
 import { VersionedTransaction } from "@solana/web3.js";
@@ -25,6 +25,7 @@ export interface TradeQuotePayload {
   sentinelScore?: number | null;
   route?: string[];
   requiresUserConfirmation?: boolean;
+  quotedAt?: string;
 }
 
 interface Props {
@@ -51,6 +52,22 @@ export function TradeQuoteCardDisplay({ payload }: Props) {
   const executable = !!payload.quoteResponse;
   const walletConnected = !!publicKey;
   const highRisk = payload.sentinelScore != null && payload.sentinelScore < 40;
+
+  const [isStale, setIsStale] = useState(false);
+
+  // Poll every second to check if the quote has expired
+  useEffect(() => {
+    if (!payload.quotedAt || !executable) return;
+    const checkStale = () => {
+      const elapsed = Date.now() - new Date(payload.quotedAt!).getTime();
+      if (elapsed > 30000) {
+        setIsStale(true);
+      }
+    };
+    checkStale();
+    const interval = setInterval(checkStale, 1000);
+    return () => clearInterval(interval);
+  }, [payload.quotedAt, executable]);
 
   const handleExecute = async () => {
     if (!executable) {
@@ -209,10 +226,10 @@ export function TradeQuoteCardDisplay({ payload }: Props) {
             <button
               type="button"
               onClick={handleExecute}
-              disabled={executing || !walletConnected}
+              disabled={executing || !walletConnected || isStale}
               className={cn(
                 "w-full inline-flex items-center justify-center gap-2 rounded-md py-2 text-sm font-semibold transition-colors",
-                highRisk
+                highRisk && !isStale
                   ? "bg-rose-500 text-white hover:bg-rose-500/90"
                   : "bg-primary text-primary-foreground hover:bg-primary/90",
                 "disabled:opacity-60 disabled:cursor-not-allowed"
@@ -225,9 +242,11 @@ export function TradeQuoteCardDisplay({ payload }: Props) {
                   ? "Executing…"
                   : !walletConnected
                     ? "Connect wallet to execute"
-                    : highRisk
-                      ? "Execute swap anyway"
-                      : "Execute swap"}
+                    : isStale
+                      ? "Quote expired, re-ask Sentinel"
+                      : highRisk
+                        ? "Execute swap anyway"
+                        : "Execute swap"}
             </button>
             {txId && (
               <a

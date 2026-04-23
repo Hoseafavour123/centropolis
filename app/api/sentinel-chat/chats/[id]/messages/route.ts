@@ -187,6 +187,7 @@ export async function POST(
         toolCalls?: any;
         toolCallId?: string;
         toolName?: string;
+        display?: any;
       }> = [];
 
       send({ type: "message_saved", payload: { role: "user", id: userMsg.id } });
@@ -318,18 +319,28 @@ export async function POST(
               content: toolContent,
               toolCallId: tc.id,
               toolName: tc.name,
+              display: result.display ?? null,
             });
           }
         }
 
-        // Persist all new assistant + tool messages in order
+        // Persist all new assistant + tool messages in order. For tool-role
+        // messages we repurpose the `toolCalls` Json column to carry the UI
+        // `display` envelope so persisted chats can re-render inline cards
+        // (trade quote, analysis, portfolio, etc.) after a reload.
         for (const m of pending) {
+          let toolCallsJson: any = undefined;
+          if (m.role === "assistant") {
+            toolCallsJson = m.toolCalls ?? undefined;
+          } else if (m.role === "tool" && m.display) {
+            toolCallsJson = { display: m.display };
+          }
           await prisma.sentinelChatMessage.create({
             data: {
               chatId: id,
               role: m.role,
               content: m.content ?? null,
-              toolCalls: m.toolCalls ?? undefined,
+              toolCalls: toolCallsJson,
               toolCallId: m.toolCallId ?? null,
               toolName: m.toolName ?? null,
             },
