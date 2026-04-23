@@ -11,6 +11,7 @@
  */
 
 import { create } from "zustand";
+import { USDC_MINT } from "@/lib/solana/constants";
 
 export interface TradeToken {
     symbol: string;
@@ -33,7 +34,7 @@ export const DEFAULT_FROM_TOKEN: TradeToken = {
 export const DEFAULT_TO_TOKEN: TradeToken = {
     symbol: "USDC",
     name: "USD Coin",
-    mint: "EPjFW36DP7mVQC7i57K6BgnUpWMT8Dz6enwbp9z96Utm",
+    mint: USDC_MINT,
 };
 
 interface TradeTokenState {

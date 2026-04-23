@@ -11,6 +11,7 @@ import { Token, TradeActivity } from "@/lib/types";
 import { dexscreenerService } from "@/services/dexscreenerService";
 import { coingeckoService, MarketCoin } from "@/services/coingeckoService";
 import { heliusService, HeliusTransaction } from "@/services/heliusService";
+import { USDC_MINT, USDT_MINT } from "@/lib/solana/constants";
 
 // ─── Safety Score Heuristic ──────────────────────────────────────────────────
 
@@ -68,9 +69,9 @@ export const dashboardService = {
                     const tokenAmt = tt.tokenAmount / 1_000_000;
 
                     // If it looks like USDC/USDT mint
-                    if (tt.mint === "EPjFW36DP7mVQC7i57K6BgnUpWMT8Dz6enwbp9z96Utm" || tt.mint === "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB") {
+                    if (tt.mint === USDC_MINT || tt.mint === USDT_MINT) {
                         usdValue = tokenAmt;
-                        tokenSymbol = tt.mint === "EPjFW36DP7mVQC7i57K6BgnUpWMT8Dz6enwbp9z96Utm" ? "USDC" : "USDT";
+                        tokenSymbol = tt.mint === USDC_MINT ? "USDC" : "USDT";
                     } else {
                         usdValue = tokenAmt * 0.1; // fallback unknown token price
                         tokenSymbol = tt.mint.slice(0, 4).toUpperCase();

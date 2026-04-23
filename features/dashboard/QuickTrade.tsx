@@ -14,9 +14,7 @@ import {
   DEFAULT_FROM_TOKEN,
   DEFAULT_TO_TOKEN,
 } from "@/store/useTradeTokenStore";
-
-const USDC_MINT = "EPjFW36DP7mVQC7i57K6BgnUpWMT8Dz6enwbp9z96Utm";
-const SOL_MINT = "So11111111111111111111111111111111111111112";
+import { SOL_MINT, USDC_MINT } from "@/lib/solana/constants";
 
 // Deterministic color per symbol
 function symbolColor(symbol: string): string {

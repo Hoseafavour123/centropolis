@@ -80,7 +80,7 @@ export function ParticleField() {
         // Draw particle
         ctx.beginPath()
         ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2)
-        ctx.fillStyle = `rgba(99, 102, 241, ${particle.alpha})`
+        ctx.fillStyle = `rgba(26, 107, 255, ${particle.alpha * 0.7})`
         ctx.fill()
 
         // Draw connections
@@ -93,7 +93,7 @@ export function ParticleField() {
             ctx.beginPath()
             ctx.moveTo(particle.x, particle.y)
             ctx.lineTo(other.x, other.y)
-            ctx.strokeStyle = `rgba(99, 102, 241, ${0.1 * (1 - dist / 100)})`
+            ctx.strokeStyle = `rgba(26, 107, 255, ${0.08 * (1 - dist / 100)})`
             ctx.stroke()
           }
         })

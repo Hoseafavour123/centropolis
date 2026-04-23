@@ -10,9 +10,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { ArrowUpRight, ArrowDownRight, Shield, ExternalLink } from 'lucide-react';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
-
-const SOL_MINT = 'So11111111111111111111111111111111111111112';
-const USDC_MINT = 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v';
+import { SOL_MINT, USDC_MINT } from '@/lib/solana/constants';
 
 function symbolForMint(mint: string): string {
     if (mint === SOL_MINT) return 'SOL';

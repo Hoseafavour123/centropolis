@@ -4,10 +4,7 @@ import { auth } from '@clerk/nextjs/server';
 import { prisma } from '@/lib/prisma';
 import { Connection, PublicKey, TransactionInstruction, TransactionMessage, VersionedTransaction, SystemProgram } from '@solana/web3.js';
 import { createTransferInstruction, getAssociatedTokenAddressSync, createSyncNativeInstruction } from '@solana/spl-token';
-
-const SOL_MINT = 'So11111111111111111111111111111111111111112';
-const USDC_MINT = 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v';
-const USDT_MINT = 'Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB';
+import { SOL_MINT, USDC_MINT, USDT_MINT } from '@/lib/solana/constants';
 
 // Use the public Jupiter API — quote-api.jup.ag requires an API key
 const JUPITER_SWAP_URL = 'https://public.jupiterapi.com/swap';

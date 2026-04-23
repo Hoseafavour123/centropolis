@@ -7,8 +7,10 @@ import { PublicKey } from '@solana/web3.js';
 import BigNumber from 'bignumber.js';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Loader2, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Loader2, CheckCircle2, AlertCircle, ExternalLink, Copy, Check } from 'lucide-react';
+import { toast } from 'sonner';
 import { PLAN_LIMITS } from '@/lib/billing/limits';
+import { USDC_MINT as USDC_MINT_STR } from '@/lib/solana/constants';
 
 interface CheckoutModalProps {
   isOpen: boolean;
@@ -17,7 +19,9 @@ interface CheckoutModalProps {
   onSuccess: () => void;
 }
 
-const USDC_MINT = new PublicKey('EPjFW36DP7mVQC7i57K6BgnUpWMT8Dz6enwbp9z96Utm');
+// Canonical Solana mainnet USDC mint (Circle). Sourced from lib/solana/constants
+// so every code path agrees on the same address.
+const USDC_MINT = new PublicKey(USDC_MINT_STR);
 
 export function CheckoutModal({ isOpen, onClose, planId, onSuccess }: CheckoutModalProps) {
   const [reference, setReference] = useState<string | null>(null);
@@ -112,9 +116,17 @@ export function CheckoutModal({ isOpen, onClose, planId, onSuccess }: CheckoutMo
     };
   }, [status, reference, planId, onSuccess, onClose]);
 
-  const handleDeepLink = () => {
-    if (paymentUrl) {
-      window.open(paymentUrl.toString(), '_blank');
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = async () => {
+    if (!paymentUrl) return;
+    try {
+      await navigator.clipboard.writeText(paymentUrl.toString());
+      setCopied(true);
+      toast.success('Payment link copied — paste into your wallet app');
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      toast.error('Could not copy to clipboard');
     }
   };
 
@@ -151,13 +163,27 @@ export function CheckoutModal({ isOpen, onClose, planId, onSuccess }: CheckoutMo
                   <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Amount Due</p>
                   <p className="text-2xl font-mono font-bold">{PLAN_LIMITS[planId].price} USDC</p>
                 </div>
-                <Button 
-                  onClick={handleDeepLink} 
-                  className="w-full mt-4" 
-                  variant="secondary"
-                >
-                  Pay with Wallet App
-                </Button>
+                <div className="flex gap-2 mt-4">
+                  <a
+                    href={paymentUrl.toString()}
+                    className="flex-1 inline-flex items-center justify-center gap-2 rounded-md bg-secondary text-secondary-foreground hover:bg-secondary/80 px-4 py-2 text-sm font-medium transition-colors"
+                  >
+                    <ExternalLink className="w-4 h-4" />
+                    Pay with Wallet App
+                  </a>
+                  <Button
+                    type="button"
+                    onClick={handleCopy}
+                    variant="outline"
+                    className="px-3"
+                    title="Copy payment link"
+                  >
+                    {copied ? <Check className="w-4 h-4 text-green-500" /> : <Copy className="w-4 h-4" />}
+                  </Button>
+                </div>
+                <p className="mt-2 text-[11px] text-muted-foreground">
+                  Opens your default Solana wallet. On desktop, scanning the QR with your phone is the most reliable path.
+                </p>
                 <div className="flex items-center justify-center gap-2 mt-4 text-xs text-muted-foreground">
                   <Loader2 className="w-3 h-3 animate-spin" />
                   <span>Waiting for transaction confirmation...</span>

@@ -3,10 +3,8 @@
 import { motion } from 'framer-motion'
 
 const orbs = [
-  { size: 300, color: 'bg-purple-500', delay: 0, x: '10%', y: '20%' },
-  { size: 200, color: 'bg-cyan-500', delay: 2, x: '80%', y: '60%' },
-  { size: 250, color: 'bg-pink-500', delay: 4, x: '60%', y: '80%' },
-  { size: 180, color: 'bg-indigo-500', delay: 1, x: '30%', y: '70%' },
+  { size: 320, color: '#1a6bff', delay: 0, x: '8%', y: '18%', opacity: 0.08 },
+  { size: 240, color: '#0a3bcc', delay: 3, x: '78%', y: '55%', opacity: 0.07 },
 ]
 
 export function FloatingOrbs() {
@@ -15,26 +13,28 @@ export function FloatingOrbs() {
       {orbs.map((orb, i) => (
         <motion.div
           key={i}
-          className={`absolute rounded-full ${orb.color} opacity-20 blur-3xl`}
+          className="absolute rounded-full blur-3xl"
           style={{
             width: orb.size,
             height: orb.size,
             left: orb.x,
             top: orb.y,
+            background: orb.color,
+            opacity: orb.opacity,
           }}
           animate={{
-            y: [0, -30, 0],
-            x: [0, 15, 0],
-            scale: [1, 1.1, 1],
+            y: [0, -25, 0],
+            x: [0, 12, 0],
+            scale: [1, 1.08, 1],
           }}
           transition={{
-            duration: 8,
+            duration: 10,
             delay: orb.delay,
             repeat: Infinity,
-            ease: "easeInOut",
+            ease: 'easeInOut',
           }}
         />
       ))}
     </div>
   )
-}
+}

@@ -5,9 +5,11 @@ import { findReference, validateTransfer } from '@solana/pay';
 import BigNumber from 'bignumber.js';
 import { prisma } from '@/lib/prisma';
 import { PLAN_LIMITS } from '@/lib/billing/limits';
+import { USDC_MINT as USDC_MINT_STR } from '@/lib/solana/constants';
 
-// USDC Mint on mainnet
-const USDC_MINT = new PublicKey('EPjFW36DP7mVQC7i57K6BgnUpWMT8Dz6enwbp9z96Utm');
+// Canonical Solana mainnet USDC mint (Circle). Sourced from lib/solana/constants
+// so the client QR builder and this verifier always agree.
+const USDC_MINT = new PublicKey(USDC_MINT_STR);
 
 export async function POST(req: Request) {
   try {

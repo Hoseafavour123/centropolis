@@ -7,11 +7,8 @@ import { dexscreenerTokenService } from "@/services/token/dexscreenerTokenServic
 import { jupiterTokenService } from "@/services/token/jupiterTokenService";
 import { tokenAggregator } from "@/services/token/tokenAggregator";
 import type { ToolContext, ToolHandler, ToolResult } from "./types";
+import { SOL_MINT, USDC_MINT, USDT_MINT, FEE_MINTS } from "@/lib/solana/constants";
 
-const SOL_MINT = "So11111111111111111111111111111111111111112";
-const USDC_MINT = "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v";
-const USDT_MINT = "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB";
-const FEE_MINTS = new Set([SOL_MINT, USDC_MINT, USDT_MINT]);
 const PLATFORM_FEE_BPS = 1500;
 
 function normalizeChain(chain?: string): string {

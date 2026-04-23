@@ -5,6 +5,7 @@ import axios from 'axios';
 import { X, ExternalLink, Download, FileText, AlertOctagon, ShieldCheck } from 'lucide-react';
 import { exportToCsv } from '@/lib/utils/csvExport';
 import { useState } from 'react';
+import { SOL_MINT, USDC_MINT, USDT_MINT } from '@/lib/solana/constants';
 
 export default function OrderDetail({ order, onClose }: any) {
     const [disputeReason, setDisputeReason] = useState('');
@@ -32,10 +33,11 @@ export default function OrderDetail({ order, onClose }: any) {
 
     const formatToken = (mint: string) => {
         if (!mint) return '—';
-        if (mint === 'So11111111111111111111111111111111111111112') return 'SOL';
-        if (mint === 'EPjFW36DP7mVQC7i57K6BgnUpWMT8Dz6enwbp9z96Utm' ||
-            mint === 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v') return 'USDC';
-        if (mint === 'Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB') return 'USDT';
+        if (mint === SOL_MINT) return 'SOL';
+        // Accept the canonical USDC mint as well as a legacy/typo mint that
+        // used to appear in older records, so historical orders render correctly.
+        if (mint === USDC_MINT || mint === 'EPjFW36DP7mVQC7i57K6BgnUpWMT8Dz6enwbp9z96Utm') return 'USDC';
+        if (mint === USDT_MINT) return 'USDT';
         return mint.length > 10 ? `${mint.slice(0, 4)}...${mint.slice(-3)}` : mint;
     };
 

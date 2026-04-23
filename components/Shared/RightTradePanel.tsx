@@ -19,20 +19,20 @@ import { useWalletData } from '@/hooks/useWalletData';
 import { useTrade } from '@/hooks/useTrade';
 import { useWalletStore } from '@/store/useWalletStore';
 import { useTradeTokenStore } from '@/store/useTradeTokenStore';
-
-const SOL_MINT = "So11111111111111111111111111111111111111112";
-const USDC_MINT = "EPjFW36DP7mVQC7i57K6BgnUpWMT8Dz6enwbp9z96Utm";
+import { SOL_MINT, USDC_MINT, USDT_MINT } from '@/lib/solana/constants';
 
 // Quote expires after 30 seconds (Jupiter quotes are short-lived)
 const QUOTE_TTL_SECONDS = 30;
 
 // Well-known token logos for SOL, USDC, USDT, etc.
+const LOGO_BASE = "https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet";
 const WELL_KNOWN_LOGOS: Record<string, string> = {
-  SOL:  "https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/So11111111111111111111111111111111111111112/logo.png",
-  USDC: "https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/EPjFW36DP7mVQC7i57K6BgnUpWMT8Dz6enwbp9z96Utm/logo.png",
-  USDT: "https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB/logo.svg",
-  [SOL_MINT]:  "https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/So11111111111111111111111111111111111111112/logo.png",
-  [USDC_MINT]: "https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/EPjFW36DP7mVQC7i57K6BgnUpWMT8Dz6enwbp9z96Utm/logo.png",
+  SOL:  `${LOGO_BASE}/${SOL_MINT}/logo.png`,
+  USDC: `${LOGO_BASE}/${USDC_MINT}/logo.png`,
+  USDT: `${LOGO_BASE}/${USDT_MINT}/logo.svg`,
+  [SOL_MINT]:  `${LOGO_BASE}/${SOL_MINT}/logo.png`,
+  [USDC_MINT]: `${LOGO_BASE}/${USDC_MINT}/logo.png`,
+  [USDT_MINT]: `${LOGO_BASE}/${USDT_MINT}/logo.svg`,
 };
 
 function resolveLogoUrl(tokenOrSymbol: string): string | undefined {
