@@ -99,9 +99,9 @@ export function CheckoutModal({ isOpen, onClose, planId, onSuccess }: CheckoutMo
           const data = await res.json();
           if (data.success) {
             setStatus('success');
+            onSuccess();
             if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
             setTimeout(() => {
-              onSuccess();
               onClose();
             }, 3000);
           }
