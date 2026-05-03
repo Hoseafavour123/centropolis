@@ -240,9 +240,9 @@ function MetricCard({
   neutral?: boolean;
 }) {
   return (
-    <Card className="p-4">
-      <div className="text-xs text-muted-foreground mb-1">{label}</div>
-      <div className="text-xl font-bold font-mono">{value}</div>
+    <Card className="p-4 flex flex-col justify-between h-full overflow-hidden">
+      <div className="text-xs text-muted-foreground mb-1 truncate">{label}</div>
+      <div className="text-xl font-bold font-mono truncate" title={value}>{value}</div>
       <div className={cn(
         "text-xs mt-1",
         positive && "text-green-500",

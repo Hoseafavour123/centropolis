@@ -108,25 +108,25 @@ export default function TxTimeline({ address }: { address: string }) {
                                 <div className={`absolute -left-[18px] top-1.5 w-9 h-9 rounded-full border ${colorClass} flex items-center justify-center bg-[#07050d]`}>
                                     <Icon className="w-4 h-4" />
                                 </div>
-                                <div className="p-4 bg-white/5 border border-white/10 rounded-2xl group-hover:bg-white/10 transition-colors">
-                                    <div className="flex justify-between items-start mb-2">
-                                        <Badge variant="outline" className={`${colorClass} rounded-lg px-2 py-0 border font-bold text-[10px]`}>
+                                <div className="p-4 bg-white/5 border border-white/10 rounded-2xl group-hover:bg-white/10 transition-colors overflow-hidden">
+                                    <div className="flex justify-between items-start mb-2 gap-2">
+                                        <Badge variant="outline" className={`${colorClass} rounded-lg px-2 py-0 border font-bold text-[10px] truncate max-w-[50%]`}>
                                             {txTypeLabel.replace(/_/g, ' ')}
                                         </Badge>
-                                        <span className="text-xs text-gray-500">
+                                        <span className="text-xs text-gray-500 whitespace-nowrap">
                                             {new Date(tx.timestamp * 1000).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
                                         </span>
                                     </div>
-                                    <div className="flex justify-between items-end mt-3">
-                                        <div className="text-sm">
+                                    <div className="flex justify-between items-end mt-3 gap-2">
+                                        <div className="text-sm min-w-0 flex-1">
                                             {amountSummary && (
-                                                <span className="font-medium text-white block">
+                                                <span className="font-medium text-white block truncate" title={amountSummary}>
                                                     {isOutbound ? '-' : '+'}{amountSummary}
                                                 </span>
                                             )}
                                         </div>
                                         <a href={`https://solscan.io/tx/${tx.signature}`} target="_blank" rel="noopener noreferrer"
-                                            className="text-xs text-purple-400 hover:text-purple-300 font-medium flex items-center gap-1 transition-colors">
+                                            className="text-xs text-purple-400 hover:text-purple-300 font-medium flex items-center gap-1 transition-colors whitespace-nowrap">
                                             View TX <ArrowUpRight className="w-3 h-3" />
                                         </a>
                                     </div>
