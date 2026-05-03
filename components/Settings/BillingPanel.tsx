@@ -21,7 +21,7 @@ export function BillingPanel() {
     const loadData = useCallback(async () => {
         if (!user) return;
         try {
-            const res = await fetch(`/api/user/${user.id}/plan`);
+            const res = await fetch(`/api/user/${user.id}/plan?t=${Date.now()}`);
             if (!res.ok) return;
             const data = await res.json();
             if (data.plan) setPlan(data.plan);

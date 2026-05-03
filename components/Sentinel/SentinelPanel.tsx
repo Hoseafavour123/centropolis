@@ -20,6 +20,12 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface SentinelPanelProps {
   analysis?: SentinelResult | null;
@@ -242,7 +248,18 @@ function MetricCard({
   return (
     <Card className="p-4 flex flex-col justify-between h-full overflow-hidden">
       <div className="text-xs text-muted-foreground mb-1 truncate">{label}</div>
-      <div className="text-xl font-bold font-mono truncate" title={value}>{value}</div>
+      <TooltipProvider delayDuration={100}>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <div className="text-xl font-bold font-mono truncate cursor-default">
+              {value}
+            </div>
+          </TooltipTrigger>
+          <TooltipContent className="max-w-xs break-words">
+            <p className="font-mono text-sm">{value}</p>
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
       <div className={cn(
         "text-xs mt-1",
         positive && "text-green-500",
